@@ -7468,6 +7468,23 @@ Other stuff untested
 		</part>
 	</software>
 
+	<!-- DOS, Windows 95B, Windows 98, Windows Me, Windows 2000, Windows XP
+	     and El Torito bootable. -->
+	<software name="pmagic">
+		<description>PartitionMagic 8.05</description>
+		<year>2004</year>
+		<publisher>Symantec</publisher>
+		<info name="language" value="English/French/German/Italian/Spanish" />
+		<info name="release" value="20040505" />
+		<info name="usage" value="Windows installer accepts any string starting with &quot;PM805EN1-&quot; for a product key." />
+		<info name="version" value="8.05" />
+		<part name="cdrom" interface="cdrom">
+			<diskarea name="cdrom">
+				<disk name="partitionmagic 8.05" sha1="f783735693288fa20c8d2d7a614a3d0674ede2bf" />
+			</diskarea>
+		</part>
+	</software>
+
 	<!--                                         -->
 	<!--                Multimedia               -->
 	<!--                                         -->
@@ -9471,6 +9488,24 @@ Installation and Open Circulation CDs are bootable.
 			<feature name="disk_label" value="Hard Drive Recovery" />
 			<diskarea name="cdrom">
 				<disk name="acercpr" sha1="a0f073387e661318eae2d1fdd30dfb116d1295ae" />
+			</diskarea>
+		</part>
+	</software>
+
+	<!-- Windows 9x/NT -->
+	<software name="dc10plus" supported="no">
+		<description>miroVIDEO Studio DC10 Plus (V. 1.04, 160657)</description>
+		<year>1998</year>
+		<publisher>Pinnacle Systems</publisher>
+		<notes><![CDATA[
+Video editing software for [ZR36067]-based PCI card, can also detect [DC30] and [DC50]
+Has an HW tester, DirectDraw fails to enable overlay with [ViRGE] Scenic Highway interface
+]]></notes>
+		<!-- Serial number: 3920519554 -->
+		<info name="language" value="Deutsch/Dutch/English"/>
+		<part name="cdrom" interface="cdrom">
+			<diskarea name="cdrom">
+				<disk name="pinnacle-studio-dc10-plus" sha1="1530776b913e21774ade2b160960f2fe70bf4c6b"/>
 			</diskarea>
 		</part>
 	</software>
