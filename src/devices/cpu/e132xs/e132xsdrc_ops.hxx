@@ -635,7 +635,7 @@ void hyperstone_device::generate_trap_exception_or_int(drcuml_block &block, uml:
 	const uint32_t clear_flags = T_MASK | M_MASK;
 	const uint32_t update_sr = FP_MASK | FL_MASK | set_flags | clear_flags;
 
-	if ((TYPE != IS_INT) && (machine().debug_flags & DEBUG_FLAG_ENABLED))
+	if ((TYPE != IS_INT) && debugger_enabled())
 	{
 		if (!trapno.is_int_register())
 		{
@@ -1582,7 +1582,7 @@ void hyperstone_device::generate_subc(drcuml_block &block, compiler_state &compi
 
 	if (!SrcGlobal || (src_code != SR_REGISTER))
 	{
-		UML_SHR(block, I4, I2, C_SHIFT + 1); // set up carry in, result unused
+		UML_CARRY(block, I2, C_SHIFT);
 		UML_SUBB(block, I0, I0, I1);
 	}
 	else
@@ -1680,7 +1680,7 @@ void hyperstone_device::generate_addc(drcuml_block &block, compiler_state &compi
 
 	if (!SrcGlobal || (src_code != SR_REGISTER))
 	{
-		UML_SHR(block, I4, I2, C_SHIFT + 1); // set up carry in, result unused
+		UML_CARRY(block, I2, C_SHIFT);
 		UML_ADDC(block, I0, I0, I1);
 	}
 	else
@@ -2808,7 +2808,6 @@ void hyperstone_device::generate_ldxx1(drcuml_block &block, compiler_state &comp
 
 				case 2: // LDW.IOD/A
 					UML_MOV(block, I7, mem(&m_core->clock_cycles_1));
-					UML_ROLAND(block, I0, I0, 21, 0x7ffc);
 					UML_CALLH(block, *m_io_read32);
 
 					if (SrcGlobal)
@@ -2830,11 +2829,10 @@ void hyperstone_device::generate_ldxx1(drcuml_block &block, compiler_state &comp
 
 				case 3: // LDD.IOD/A
 					UML_MOV(block, I7, mem(&m_core->clock_cycles_2));
-					UML_ROLAND(block, I0, I0, 21, 0x7ffc);
 					UML_CALLH(block, *m_io_read32);
 					generate_set_register(block, compiler, desc, SrcGlobal, src_code, uml::I1, uml::I2, true);
 
-					UML_ADD(block, I0, I0, 4);
+					UML_ADD(block, I0, I0, 1 << 13);
 					UML_CALLH(block, *m_io_read32);
 					generate_set_register(block, compiler, desc, SrcGlobal, srcf_code, uml::I1, uml::I3, true);
 
@@ -3035,6 +3033,8 @@ void hyperstone_device::generate_stxx1(drcuml_block &block, compiler_state &comp
 			if (sub_type == 0)
 			{
 				const int no_exception = compiler.next_label();
+				UML_TEST(block, I1, 0xffffff00);
+				UML_JMPc(block, uml::COND_Z, no_exception);
 				UML_SEXT(block, I0, I1, SIZE_BYTE);
 				UML_CMP(block, I0, I1);
 				UML_JMPc(block, uml::COND_E, no_exception);
@@ -3051,6 +3051,8 @@ void hyperstone_device::generate_stxx1(drcuml_block &block, compiler_state &comp
 			if (extra_s & 1)
 			{
 				const int no_exception = compiler.next_label();
+				UML_TEST(block, I1, 0xffff0000);
+				UML_JMPc(block, uml::COND_Z, no_exception);
 				UML_SEXT(block, I0, I1, SIZE_WORD);
 				UML_CMP(block, I0, I1);
 				UML_JMPc(block, uml::COND_E, no_exception);
@@ -3090,12 +3092,10 @@ void hyperstone_device::generate_stxx1(drcuml_block &block, compiler_state &comp
 					break;
 				case 2: // STW.IOD/A
 					UML_MOV(block, I7, mem(&m_core->clock_cycles_1));
-					UML_ROLAND(block, I0, I0, 21, 0x7ffc);
 					UML_CALLH(block, *m_io_write32);
 					break;
 				case 3: // STD.IOD/A
 					UML_MOV(block, I7, mem(&m_core->clock_cycles_2));
-					UML_ROLAND(block, I0, I0, 21, 0x7ffc);
 					UML_CALLH(block, *m_io_write32);
 
 					if (SrcGlobal)
@@ -3112,7 +3112,7 @@ void hyperstone_device::generate_stxx1(drcuml_block &block, compiler_state &comp
 						UML_LOAD(block, I1, (void *)m_core->local_regs, I3, SIZE_DWORD, SCALE_x4);
 					}
 
-					UML_ADD(block, I0, I0, 4);
+					UML_ADD(block, I0, I0, 1 << 13);
 					UML_CALLH(block, *m_io_write32);
 					break;
 			}
@@ -3172,6 +3172,8 @@ void hyperstone_device::generate_stxx2(drcuml_block &block, compiler_state &comp
 			if (sub_type == 0)
 			{
 				const int no_exception = compiler.next_label();
+				UML_TEST(block, I1, 0xffffff00);
+				UML_JMPc(block, uml::COND_Z, no_exception);
 				UML_SEXT(block, I0, I1, SIZE_BYTE);
 				UML_CMP(block, I0, I1);
 				UML_JMPc(block, uml::COND_E, no_exception);
@@ -3195,6 +3197,8 @@ void hyperstone_device::generate_stxx2(drcuml_block &block, compiler_state &comp
 			if (extra_s & 1)
 			{
 				const int no_exception = compiler.next_label();
+				UML_TEST(block, I1, 0xffff0000);
+				UML_JMPc(block, uml::COND_Z, no_exception);
 				UML_SEXT(block, I0, I1, SIZE_WORD);
 				UML_CMP(block, I0, I1);
 				UML_JMPc(block, uml::COND_E, no_exception);
@@ -3914,7 +3918,7 @@ void hyperstone_device::generate_dbr(drcuml_block &block, compiler_state &compil
 #endif
 
 		// if we are debugging, call the debugger
-		if (machine().debug_flags & DEBUG_FLAG_ENABLED)
+		if (debugger_enabled())
 		{
 			//save_fast_iregs(block);
 			UML_DEBUG(block, delayslot->pc);
