@@ -900,11 +900,12 @@ void rabbit_state::rabbit(machine_config &config)
 	PALETTE(config, m_palette, palette_device::BLACK).set_format(palette_device::xGRB_888, 0x4000);
 
 	/* sound hardware */
-	SPEAKER(config, "speaker", 2).front();
+	SPEAKER(config, "lspeaker").front_left();
+	SPEAKER(config, "rspeaker").front_right();
 
 	i5000snd_device &i5000snd(I5000_SND(config, "i5000snd", XTAL(40'000'000)));
-	i5000snd.add_route(0, "speaker", 1.0, 1);
-	i5000snd.add_route(1, "speaker", 1.0, 0);
+	i5000snd.add_route(0, "rspeaker", 1.0);
+	i5000snd.add_route(1, "lspeaker", 1.0);
 }
 
 

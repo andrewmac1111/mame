@@ -441,9 +441,10 @@ void s2636_device::write_intack(int state)
 //  sound_stream_update - generate audio output
 //-------------------------------------------------
 
-void s2636_device::sound_stream_update(sound_stream &stream)
+void s2636_device::sound_stream_update(sound_stream &stream, std::vector<read_stream_view> const &inputs, std::vector<write_stream_view> &outputs)
 {
-	for (int sampindex = 0; sampindex < stream.samples(); sampindex++)
+	auto &buffer = outputs[0];
+	for (int sampindex = 0; sampindex < buffer.samples(); sampindex++)
 	{
 		if (!m_sample_cnt)
 		{
@@ -459,7 +460,7 @@ void s2636_device::sound_stream_update(sound_stream &stream)
 			}
 		}
 
-		stream.put(0, sampindex, m_sound_lvl ? 1.0 : 0.0);
+		buffer.put(sampindex, m_sound_lvl ? 1.0 : 0.0);
 		m_sample_cnt--;
 	}
 }

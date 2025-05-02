@@ -42,7 +42,8 @@ vrender0soc_device::vrender0soc_device(const machine_config &mconfig, const char
 	m_palette(*this, "palette"),
 	m_vr0vid(*this, "vr0vid"),
 	m_vr0snd(*this, "vr0snd"),
-	m_speaker(*this, "speaker"),
+	m_lspeaker(*this, "lspeaker"),
+	m_rspeaker(*this, "rspeaker"),
 	m_uart(*this, "uart%u", 0),
 	m_crtcregs(*this, "crtcregs"),
 	write_tx(*this)
@@ -134,14 +135,15 @@ void vrender0soc_device::device_add_mconfig(machine_config &config)
 
 	PALETTE(config, m_palette, palette_device::RGB_565);
 
-	SPEAKER(config, m_speaker, 2).front();
+	SPEAKER(config, m_lspeaker).front_left();
+	SPEAKER(config, m_rspeaker).front_right();
 
 	SOUND_VRENDER0(config, m_vr0snd, DERIVED_CLOCK(1,1)); // Correct?
 	m_vr0snd->set_addrmap(vr0sound_device::AS_TEXTURE, &vrender0soc_device::texture_map);
 	m_vr0snd->set_addrmap(vr0sound_device::AS_FRAME, &vrender0soc_device::frame_map);
 	m_vr0snd->irq_callback().set(FUNC(vrender0soc_device::soundirq_cb));
-	m_vr0snd->add_route(0, m_speaker, 1.0, 0);
-	m_vr0snd->add_route(1, m_speaker, 1.0, 1);
+	m_vr0snd->add_route(0, m_lspeaker, 1.0);
+	m_vr0snd->add_route(1, m_rspeaker, 1.0);
 }
 
 

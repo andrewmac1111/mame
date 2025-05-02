@@ -76,7 +76,8 @@ void gpm4530a_lexibook_state::gpm4530a_lexibook(machine_config &config)
 	SPI_SDCARD(config, m_sdcard, 0);
 	m_sdcard->set_prefer_sdhc();
 
-	SPEAKER(config, "speaker", 2).front();
+	SPEAKER(config, "lspeaker").front_left();
+	SPEAKER(config, "rspeaker").front_right();
 }
 
 ROM_START( lx_jg7420 )

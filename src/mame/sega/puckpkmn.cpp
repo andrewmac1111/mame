@@ -403,20 +403,21 @@ void puckpkmn_state::puckpkmn(machine_config &config)
 
 	m_maincpu->set_addrmap(AS_PROGRAM, &puckpkmn_state::puckpkmn_map);
 
-	m_vdp->add_route(ALL_OUTPUTS, "speaker", 0.50, 0);
-	m_vdp->add_route(ALL_OUTPUTS, "speaker", 0.50, 1);
+	m_vdp->add_route(ALL_OUTPUTS, "lspeaker", 0.50);
+	m_vdp->add_route(ALL_OUTPUTS, "rspeaker", 0.50);
 
 	// sound hardware
-	SPEAKER(config, "speaker", 2).front();
+	SPEAKER(config, "lspeaker").front_left();
+	SPEAKER(config, "rspeaker").front_right();
 
 	// Internalized YM3438 in VDP ASIC
 	YM3438(config, m_ymsnd, MASTER_CLOCK_NTSC / 7); // 7.67 MHz
-	m_ymsnd->add_route(0, "speaker", 0.50, 0);
-	m_ymsnd->add_route(1, "speaker", 0.50, 1);
+	m_ymsnd->add_route(0, "lspeaker", 0.50);
+	m_ymsnd->add_route(1, "rspeaker", 0.50);
 
 	okim6295_device &oki(OKIM6295(config, "oki", XTAL(4'000'000) / 4, okim6295_device::PIN7_HIGH));
-	oki.add_route(ALL_OUTPUTS, "speaker", 0.25, 0);
-	oki.add_route(ALL_OUTPUTS, "speaker", 0.25, 1);
+	oki.add_route(ALL_OUTPUTS, "lspeaker", 0.25);
+	oki.add_route(ALL_OUTPUTS, "rspeaker", 0.25);
 }
 
 void puckpkmn_state::jingling(machine_config &config)

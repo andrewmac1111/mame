@@ -694,23 +694,24 @@ void pleiads_sound_device::common_start()
 //  sound_stream_update - handle a stream update
 //-------------------------------------------------
 
-void pleiads_sound_device::sound_stream_update(sound_stream &stream)
+void pleiads_sound_device::sound_stream_update(sound_stream &stream, std::vector<read_stream_view> const &inputs, std::vector<write_stream_view> &outputs)
 {
-	int rate = stream.sample_rate();
+	auto &buffer = outputs[0];
+	int rate = buffer.sample_rate();
 
-	for (int sampindex = 0; sampindex < stream.samples(); sampindex++)
+	for (int sampindex = 0; sampindex < buffer.samples(); sampindex++)
 	{
 		int sum = tone1(rate)/2 + tone23(rate)/2 + tone4(rate) + noise(rate);
-		stream.put_int_clamp(0, sampindex, sum, 32768);
+		buffer.put_int_clamp(sampindex, sum, 32768);
 	}
 }
 
-void naughtyb_sound_device::sound_stream_update(sound_stream &stream)
+void naughtyb_sound_device::sound_stream_update(sound_stream &stream, std::vector<read_stream_view> const &inputs, std::vector<write_stream_view> &outputs)
 {
-	pleiads_sound_device::sound_stream_update(stream);
+	pleiads_sound_device::sound_stream_update(stream, inputs, outputs);
 }
 
-void popflame_sound_device::sound_stream_update(sound_stream &stream)
+void popflame_sound_device::sound_stream_update(sound_stream &stream, std::vector<read_stream_view> const &inputs, std::vector<write_stream_view> &outputs)
 {
-	pleiads_sound_device::sound_stream_update(stream);
+	pleiads_sound_device::sound_stream_update(stream, inputs, outputs);
 }

@@ -400,7 +400,8 @@ void aerofgt_state::aerofgt(machine_config &config)
 	m_spr->set_pri_cb(FUNC(aerofgt_state::pri_callback));
 
 	// sound hardware
-	SPEAKER(config, "speaker", 2).front();
+	SPEAKER(config, "lspeaker").front_left();
+	SPEAKER(config, "rspeaker").front_right();
 
 	GENERIC_LATCH_8(config, m_soundlatch);
 	m_soundlatch->data_pending_callback().set(FUNC(aerofgt_state::soundlatch_pending_w));
@@ -408,10 +409,10 @@ void aerofgt_state::aerofgt(machine_config &config)
 
 	ym2610_device &ymsnd(YM2610(config, "ymsnd", XTAL(8'000'000)));  // verified on pcb
 	ymsnd.irq_handler().set_inputline(m_audiocpu, 0);
-	ymsnd.add_route(0, "speaker", 0.75, 0);
-	ymsnd.add_route(0, "speaker", 0.75, 1);
-	ymsnd.add_route(1, "speaker", 1.0, 0);
-	ymsnd.add_route(2, "speaker", 1.0, 1);
+	ymsnd.add_route(0, "lspeaker", 0.75);
+	ymsnd.add_route(0, "rspeaker", 0.75);
+	ymsnd.add_route(1, "lspeaker", 1.0);
+	ymsnd.add_route(2, "rspeaker", 1.0);
 }
 
 

@@ -59,8 +59,7 @@ private:
 
 	// cached driver flags
 	const game_driver *     m_cached_driver;
-	machine_flags::type     m_cached_machine_flags;
-	device_t::flags_type    m_cached_emulation_flags;
+	machine_flags::type     m_cached_flags;
 	device_t::feature_type  m_cached_unemulated;
 	device_t::feature_type  m_cached_imperfect;
 	rgb_t                   m_cached_color;

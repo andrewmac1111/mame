@@ -94,9 +94,12 @@ void svision_sound_device::device_start()
 //  sound_stream_update - handle a stream update
 //-------------------------------------------------
 
-void svision_sound_device::sound_stream_update(sound_stream &stream)
+void svision_sound_device::sound_stream_update(sound_stream &stream, std::vector<read_stream_view> const &inputs, std::vector<write_stream_view> &outputs)
 {
-	for (int i = 0; i < stream.samples(); i++)
+	auto &left = outputs[0];
+	auto &right = outputs[1];
+
+	for (int i = 0; i < left.samples(); i++)
 	{
 		s32 lsum = 0;
 		s32 rsum = 0;
@@ -196,8 +199,8 @@ void svision_sound_device::sound_stream_update(sound_stream &stream)
 				m_irq_cb(1);
 			}
 		}
-		stream.put_int(0, i, lsum, 32768);
-		stream.put_int(1, i, rsum, 32768);
+		left.put_int(i, lsum, 32768);
+		right.put_int(i, rsum, 32768);
 	}
 }
 

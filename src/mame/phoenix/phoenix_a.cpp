@@ -522,14 +522,15 @@ void phoenix_sound_device::control_b_w(uint8_t data)
 //  sound_stream_update - handle a stream update
 //-------------------------------------------------
 
-void phoenix_sound_device::sound_stream_update(sound_stream &stream)
+void phoenix_sound_device::sound_stream_update(sound_stream &stream, std::vector<read_stream_view> const &inputs, std::vector<write_stream_view> &outputs)
 {
-	int samplerate = stream.sample_rate();
+	auto &buffer = outputs[0];
+	int samplerate = buffer.sample_rate();
 
-	for (int sampindex = 0; sampindex < stream.samples(); sampindex++)
+	for (int sampindex = 0; sampindex < buffer.samples(); sampindex++)
 	{
 		int sum = 0;
 		sum = noise(samplerate) / 2;
-		stream.put_int_clamp(0, sampindex, sum, 32768);
+		buffer.put_int_clamp(sampindex, sum, 32768);
 	}
 }

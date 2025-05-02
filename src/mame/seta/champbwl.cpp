@@ -571,11 +571,12 @@ void champbwl_state::champbwl(machine_config &config)
 	PALETTE(config, "palette", FUNC(champbwl_state::palette), 512);
 
 	// sound hardware
-	SPEAKER(config, "speaker", 2).front();
+	SPEAKER(config, "lspeaker").front_left();
+	SPEAKER(config, "rspeaker").front_right();
 
 	x1_010_device &x1snd(X1_010(config, "x1snd", 16_MHz_XTAL));
-	x1snd.add_route(0, "speaker", 1.0, 0);
-	x1snd.add_route(1, "speaker", 1.0, 1);
+	x1snd.add_route(0, "lspeaker", 1.0);
+	x1snd.add_route(1, "rspeaker", 1.0);
 }
 
 

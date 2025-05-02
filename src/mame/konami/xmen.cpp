@@ -662,15 +662,16 @@ void xmen_state::sound_hardware(machine_config &config)
 	m_audiocpu->set_addrmap(AS_PROGRAM, &xmen_state::sound_map);
 
 	// sound hardware
-	SPEAKER(config, "speaker", 2).front();
+	SPEAKER(config, "lspeaker").front_left();
+	SPEAKER(config, "rspeaker").front_right();
 
-	K054321(config, "k054321", "speaker");
+	K054321(config, "k054321", "lspeaker", "rspeaker");
 
-	YM2151(config, "ymsnd", XTAL(16'000'000) / 4).add_route(0, "speaker", 0.20, 1).add_route(1, "speaker", 0.20, 0);  // verified on PCB
+	YM2151(config, "ymsnd", XTAL(16'000'000) / 4).add_route(0, "lspeaker", 0.20).add_route(1, "rspeaker", 0.20);  // verified on PCB
 
 	k054539_device &k054539(K054539(config, "k054539", XTAL(18'432'000)));
-	k054539.add_route(0, "speaker", 1.00, 1);
-	k054539.add_route(1, "speaker", 1.00, 0);
+	k054539.add_route(0, "rspeaker", 1.00);
+	k054539.add_route(1, "lspeaker", 1.00);
 }
 
 void xmen_state::bootleg_sound_hardware(machine_config &config)

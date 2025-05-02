@@ -59,14 +59,15 @@ TIMER_CALLBACK_MEMBER(tvc_sound_device::trigger_int)
 //  our sound stream
 //-------------------------------------------------
 
-void tvc_sound_device::sound_stream_update(sound_stream &stream)
+void tvc_sound_device::sound_stream_update(sound_stream &stream, std::vector<read_stream_view> const &inputs, std::vector<write_stream_view> &outputs)
 {
-	int rate = stream.sample_rate() / 2;
+	auto &output = outputs[0];
+	int rate = output.sample_rate() / 2;
 	if (m_enabled && m_freq)
 	{
-		for (int sampindex = 0; sampindex < stream.samples(); sampindex++)
+		for (int sampindex = 0; sampindex < output.samples(); sampindex++)
 		{
-			stream.put_int(0, sampindex, m_signal * m_volume, 32768 / 0x0800);
+			output.put_int(sampindex, m_signal * m_volume, 32768 / 0x0800);
 			m_incr -= m_freq;
 			while(m_incr < 0)
 			{
@@ -74,6 +75,11 @@ void tvc_sound_device::sound_stream_update(sound_stream &stream)
 				m_signal = -m_signal;
 			}
 		}
+	}
+	else
+	{
+		// fill output with 0 if the sound is disabled
+		output.fill(0);
 	}
 }
 

@@ -1152,9 +1152,9 @@ void segas32_state::system32_map(address_map &map)
 	map(0x600000, 0x60ffff).mirror(0x0e0000).rw(FUNC(segas32_state::paletteram_r<0>), FUNC(segas32_state::paletteram_w<0>));
 	map(0x610000, 0x61007f).mirror(0x0eff80).rw(FUNC(segas32_state::mixer_r<0>), FUNC(segas32_state::mixer_w<0>));
 	map(0x700000, 0x701fff).mirror(0x0fe000).rw(FUNC(segas32_state::shared_ram_r), FUNC(segas32_state::shared_ram_w));
-	map(0x800000, 0x800fff).rw("s32comm", FUNC(s32comm_device::share_r), FUNC(s32comm_device::share_w)).umask16(0x00ff);
-	map(0x801000, 0x801000).rw("s32comm", FUNC(s32comm_device::cn_r), FUNC(s32comm_device::cn_w));
-	map(0x801002, 0x801002).rw("s32comm", FUNC(s32comm_device::fg_r), FUNC(s32comm_device::fg_w));
+	map(0x800000, 0x800fff).rw(m_s32comm, FUNC(sega_s32comm_device::share_r), FUNC(sega_s32comm_device::share_w)).umask16(0x00ff);
+	map(0x801000, 0x801000).rw(m_s32comm, FUNC(sega_s32comm_device::cn_r), FUNC(sega_s32comm_device::cn_w));
+	map(0x801002, 0x801002).rw(m_s32comm, FUNC(sega_s32comm_device::fg_r), FUNC(sega_s32comm_device::fg_w));
 	map(0xc00000, 0xc0001f).mirror(0x0fff80).rw("io_chip", FUNC(sega_315_5296_device::read), FUNC(sega_315_5296_device::write)).umask16(0x00ff);
 	// 0xc00040-0xc0007f - I/O expansion area
 	map(0xd00000, 0xd0000f).mirror(0x07fff0).rw(FUNC(segas32_state::int_control_r), FUNC(segas32_state::int_control_w));
@@ -1177,9 +1177,9 @@ void segas32_state::multi32_map(address_map &map)
 	map(0x680000, 0x68ffff).mirror(0x060000).rw(FUNC(segas32_state::paletteram_r<1>), FUNC(segas32_state::paletteram_w<1>));
 	map(0x690000, 0x69007f).mirror(0x06ff80).rw(FUNC(segas32_state::mixer_r<1>), FUNC(segas32_state::mixer_w<1>));
 	map(0x700000, 0x701fff).mirror(0x0fe000).rw(FUNC(segas32_state::shared_ram_r), FUNC(segas32_state::shared_ram_w));
-	map(0x800000, 0x800fff).rw("s32comm", FUNC(s32comm_device::share_r), FUNC(s32comm_device::share_w)).umask32(0x00ff00ff);
-	map(0x801000, 0x801000).rw("s32comm", FUNC(s32comm_device::cn_r), FUNC(s32comm_device::cn_w));
-	map(0x801002, 0x801002).rw("s32comm", FUNC(s32comm_device::fg_r), FUNC(s32comm_device::fg_w));
+	map(0x800000, 0x800fff).rw(m_s32comm, FUNC(sega_s32comm_device::share_r), FUNC(sega_s32comm_device::share_w)).umask32(0x00ff00ff);
+	map(0x801000, 0x801000).rw(m_s32comm, FUNC(sega_s32comm_device::cn_r), FUNC(sega_s32comm_device::cn_w));
+	map(0x801002, 0x801002).rw(m_s32comm, FUNC(sega_s32comm_device::fg_r), FUNC(sega_s32comm_device::fg_w));
 	map(0xc00000, 0xc0001f).mirror(0x07ff80).rw("io_chip_0", FUNC(sega_315_5296_device::read), FUNC(sega_315_5296_device::write)).umask32(0x00ff00ff);
 	// 0xc00040-0xc0007f - I/O expansion area 0
 	map(0xc80000, 0xc8001f).mirror(0x07ff80).rw("io_chip_1", FUNC(sega_315_5296_device::read), FUNC(sega_315_5296_device::write)).umask32(0x00ff00ff);
@@ -2274,23 +2274,24 @@ void segas32_state::device_add_mconfig(machine_config &config)
 	m_screen->set_screen_update(FUNC(segas32_state::screen_update_system32));
 
 	/* sound hardware */
-	SPEAKER(config, "speaker", 2).front();
+	SPEAKER(config, "lspeaker").front_left();
+	SPEAKER(config, "rspeaker").front_right();
 
 	ym3438_device &ym1(YM3438(config, "ym1", MASTER_CLOCK/4));
 	ym1.irq_handler().set(FUNC(segas32_state::ym3438_irq_handler));
-	ym1.add_route(0, "speaker", 0.40, 0);
-	ym1.add_route(1, "speaker", 0.40, 1);
+	ym1.add_route(0, "lspeaker", 0.40);
+	ym1.add_route(1, "rspeaker", 0.40);
 
 	ym3438_device &ym2(YM3438(config, "ym2", MASTER_CLOCK/4));
-	ym2.add_route(0, "speaker", 0.40, 0);
-	ym2.add_route(1, "speaker", 0.40, 1);
+	ym2.add_route(0, "lspeaker", 0.40);
+	ym2.add_route(1, "rspeaker", 0.40);
 
 	rf5c68_device &rfsnd(RF5C68(config, "rfsnd", 50_MHz_XTAL/4)); // ASSP (RF)5C105 or Sega 315-5476A
-	rfsnd.add_route(0, "speaker", 0.55, 0);
-	rfsnd.add_route(1, "speaker", 0.55, 1);
+	rfsnd.add_route(0, "lspeaker", 0.55);
+	rfsnd.add_route(1, "rspeaker", 0.55);
 	rfsnd.set_addrmap(0, &segas32_state::rf5c68_map);
 
-	S32COMM(config, m_s32comm, 0);
+	SEGA_SYSTEM32_COMM(config, m_s32comm, 0U);
 }
 
 DEFINE_DEVICE_TYPE(SEGA_S32_REGULAR_DEVICE, segas32_regular_state, "segas32_pcb_regular", "Sega System 32 regular PCB")
@@ -2509,8 +2510,8 @@ void segas32_cd_state::device_add_mconfig(machine_config &config)
 	NSCSI_CONNECTOR(config, "scsi:0").option_set("cdrom", NSCSI_CDROM).machine_config(
 		[](device_t *device)
 		{
-		  device->subdevice<cdda_device>("cdda")->add_route(0, "^^speaker", 1.0, 0);
-		  device->subdevice<cdda_device>("cdda")->add_route(1, "^^speaker", 1.0, 1);
+			device->subdevice<cdda_device>("cdda")->add_route(0, "^^lspeaker", 1.0);
+			device->subdevice<cdda_device>("cdda")->add_route(1, "^^rspeaker", 1.0);
 		});
 	NSCSI_CONNECTOR(config, "scsi:1", scsi_devices, nullptr);
 	NSCSI_CONNECTOR(config, "scsi:2", scsi_devices, nullptr);
@@ -2606,19 +2607,20 @@ void sega_multi32_state::device_add_mconfig(machine_config &config)
 	screen2.set_screen_update(FUNC(segas32_state::screen_update_multi32_right));
 
 	/* sound hardware */
-	SPEAKER(config, "speaker", 2).front();
+	SPEAKER(config, "lspeaker").front_left();
+	SPEAKER(config, "rspeaker").front_right();
 
 	ym3438_device &ymsnd(YM3438(config, "ymsnd", MASTER_CLOCK/4));
 	ymsnd.irq_handler().set(FUNC(segas32_state::ym3438_irq_handler));
-	ymsnd.add_route(1, "speaker", 0.40, 0);
-	ymsnd.add_route(0, "speaker", 0.40, 1);
+	ymsnd.add_route(1, "lspeaker", 0.40);
+	ymsnd.add_route(0, "rspeaker", 0.40);
 
 	MULTIPCM(config, m_multipcm, MULTI32_CLOCK/4);
 	m_multipcm->set_addrmap(0, &sega_multi32_state::multipcm_map);
-	m_multipcm->add_route(1, "speaker", 1.0, 0);
-	m_multipcm->add_route(0, "speaker", 1.0, 1);
+	m_multipcm->add_route(1, "lspeaker", 1.0);
+	m_multipcm->add_route(0, "rspeaker", 1.0);
 
-	S32COMM(config, m_s32comm, 0);
+	SEGA_SYSTEM32_COMM(config, m_s32comm, 0U);
 }
 
 

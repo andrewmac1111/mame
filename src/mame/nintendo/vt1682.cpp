@@ -5789,10 +5789,11 @@ void vt_vt1682_state::vt_vt1682_common(machine_config& config)
 	VT_VT1682_IO(config, m_io, 0);
 	VT_VT1682_UIO(config, m_uio, 0);
 
-	SPEAKER(config, "speaker", 2).front();
+	SPEAKER(config, "lspeaker").front_left();
+	SPEAKER(config, "rspeaker").front_right();
 
-	DAC_12BIT_R2R(config, m_leftdac, 0).add_route(0, "speaker", 0.5, 0); // unknown 12-bit DAC
-	DAC_12BIT_R2R(config, m_rightdac, 0).add_route(0, "speaker", 0.5, 1); // unknown 12-bit DAC
+	DAC_12BIT_R2R(config, m_leftdac, 0).add_route(0, "lspeaker", 0.5); // unknown 12-bit DAC
+	DAC_12BIT_R2R(config, m_rightdac, 0).add_route(0, "rspeaker", 0.5); // unknown 12-bit DAC
 }
 
 
@@ -6177,7 +6178,8 @@ void intec_interact_state::intech_interact(machine_config& config)
 	m_leftdac->reset_routes();
 	m_rightdac->reset_routes();
 
-	config.device_remove(":speaker");
+	config.device_remove(":lspeaker");
+	config.device_remove(":rspeaker");
 
 	SPEAKER(config, "mono").front_center();
 	m_leftdac->add_route(0, "mono", 0.5);
@@ -6239,7 +6241,8 @@ void vt1682_dance_state::vt1682_dance(machine_config& config)
 	m_leftdac->reset_routes();
 	m_rightdac->reset_routes();
 
-	config.device_remove(":speaker");
+	config.device_remove(":lspeaker");
+	config.device_remove(":rspeaker");
 
 	SPEAKER(config, "mono").front_center();
 	m_leftdac->add_route(0, "mono", 0.5);
@@ -6268,7 +6271,8 @@ void vt1682_lxts3_state::vt1682_lxts3(machine_config& config)
 	m_leftdac->reset_routes();
 	m_rightdac->reset_routes();
 
-	config.device_remove(":speaker");
+	config.device_remove(":lspeaker");
+	config.device_remove(":rspeaker");
 
 	SPEAKER(config, "mono").front_center();
 	m_leftdac->add_route(0, "mono", 0.5);
@@ -6292,7 +6296,8 @@ void vt1682_mx10_state::mx10(machine_config& config)
 	m_leftdac->reset_routes();
 	m_rightdac->reset_routes();
 
-	config.device_remove(":speaker");
+	config.device_remove(":lspeaker");
+	config.device_remove(":rspeaker");
 
 	SPEAKER(config, "mono").front_center();
 	m_leftdac->add_route(0, "mono", 0.5);
@@ -6310,7 +6315,8 @@ void vt1682_lxts3_state::vt1682_unk1682(machine_config& config)
 	m_leftdac->reset_routes();
 	m_rightdac->reset_routes();
 
-	config.device_remove(":speaker");
+	config.device_remove(":lspeaker");
+	config.device_remove(":rspeaker");
 
 	SPEAKER(config, "mono").front_center();
 	m_leftdac->add_route(0, "mono", 0.5);

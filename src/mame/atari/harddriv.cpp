@@ -838,7 +838,7 @@ static INPUT_PORTS_START( harddriv )
 	PORT_BIT( 0xff, 0x00, IPT_PEDAL3 ) PORT_SENSITIVITY(25) PORT_KEYDELTA(100) PORT_NAME("Clutch Pedal")
 
 	PORT_START("mainpcb:8BADC.2")        /* b00000 - 8 bit ADC 2 - seat */
-	PORT_BIT( 0xff, 0x80, IPT_CUSTOM )
+	PORT_BIT( 0xff, 0x80, IPT_AD_STICK_Z ) PORT_SENSITIVITY(25) PORT_KEYDELTA(20) PORT_NAME("Seat")
 
 	PORT_START("mainpcb:8BADC.3")        /* b00000 - 8 bit ADC 3 - shifter lever Y */
 	PORT_BIT( 0xff, 0x80, IPT_AD_STICK_Y ) PORT_SENSITIVITY(25) PORT_KEYDELTA(128) PORT_CODE_DEC(KEYCODE_R) PORT_CODE_INC(KEYCODE_F) PORT_NAME("Shifter Lever Y")
@@ -921,7 +921,7 @@ static INPUT_PORTS_START( racedriv )
 	PORT_BIT( 0xff, 0x00, IPT_PEDAL3 ) PORT_SENSITIVITY(25) PORT_KEYDELTA(100) PORT_NAME("Clutch Pedal")
 
 	PORT_START("mainpcb:8BADC.2")        /* b00000 - 8 bit ADC 2 - seat */
-	PORT_BIT( 0xff, 0x80, IPT_CUSTOM )
+	PORT_BIT( 0xff, 0x80, IPT_AD_STICK_Z ) PORT_SENSITIVITY(25) PORT_KEYDELTA(20) PORT_NAME("Seat")
 
 	PORT_START("mainpcb:8BADC.3")        /* b00000 - 8 bit ADC 3 - shifter lever Y */
 	PORT_BIT( 0xff, 0x80, IPT_AD_STICK_Y ) PORT_SENSITIVITY(25) PORT_KEYDELTA(128) PORT_CODE_DEC(KEYCODE_R) PORT_CODE_INC(KEYCODE_F) PORT_NAME("Shifter Lever Y")
@@ -1627,10 +1627,11 @@ void harddriv_state::ds3(machine_config &config)
 	m_ds3xdsp->set_addrmap(AS_DATA, &harddriv_state::ds3xdsp_data_map);
 	TIMER(config, "ds3xdsp_timer").configure_generic(FUNC(harddriv_state::ds3xdsp_internal_timer_callback));
 
-	SPEAKER(config, "speaker", 2).front();
+	SPEAKER(config, "lspeaker").front_left();
+	SPEAKER(config, "rspeaker").front_right();
 
-	DAC_16BIT_R2R(config, m_ldac, 0).add_route(ALL_OUTPUTS, "speaker", 1.0, 0); // unknown DAC
-	DAC_16BIT_R2R(config, m_rdac, 0).add_route(ALL_OUTPUTS, "speaker", 1.0, 1); // unknown DAC
+	DAC_16BIT_R2R(config, m_ldac, 0).add_route(ALL_OUTPUTS, "lspeaker", 1.0); // unknown DAC
+	DAC_16BIT_R2R(config, m_rdac, 0).add_route(ALL_OUTPUTS, "rspeaker", 1.0); // unknown DAC
 }
 
 
@@ -1931,7 +1932,8 @@ void steeltal_board_device_state::device_add_mconfig(machine_config &config) //t
 	config.device_remove("ds3xdsp");
 	config.device_remove("ldac");
 	config.device_remove("rdac");
-	config.device_remove("speaker");
+	config.device_remove("lspeaker");
+	config.device_remove("rspeaker");
 
 	ASIC65(config, m_asic65, 0, ASIC65_STEELTAL);         /* ASIC65 on DSPCOM board */
 

@@ -133,9 +133,12 @@ void k051649_device::device_clock_changed()
 //  sound_stream_update - handle a stream update
 //-------------------------------------------------
 
-void k051649_device::sound_stream_update(sound_stream &stream)
+void k051649_device::sound_stream_update(sound_stream &stream, std::vector<read_stream_view> const &inputs, std::vector<write_stream_view> &outputs)
 {
-	for (int i = 0; i < stream.samples(); i++)
+	// zap the contents of the mixer buffer
+	outputs[0].fill(0);
+
+	for (int i = 0; i < outputs[0].samples(); i++)
 	{
 		for (sound_channel &voice : m_channel_list)
 		{
@@ -154,7 +157,7 @@ void k051649_device::sound_stream_update(sound_stream &stream)
 			}
 
 			// scale to 11 bit digital output on chip
-			stream.add_int(0, i, voice.sample >> 4, 1024);
+			outputs[0].add_int(i, voice.sample >> 4, 1024);
 		}
 	}
 }

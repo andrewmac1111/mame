@@ -46,8 +46,7 @@ public:
 		, m_crtc(*this, "crtc")
 		, m_screen(*this, "screen1")
 		, m_cpu_waiting(false)
-	{
-	}
+	{}
 
 	virtual std::error_condition initialize_cartridge(std::string &message) override;
 
@@ -68,7 +67,7 @@ private:
 	required_device<mc6845_device> m_crtc;
 	required_device<screen_device> m_screen;
 
-	uint8_t m_vram[VRAM_SIZE];
+	uint8_t m_vram[ VRAM_SIZE ];
 	bool m_cpu_waiting;
 
 	MC6845_UPDATE_ROW(crtc_update_row);
@@ -76,14 +75,12 @@ private:
 
 std::error_condition msx_cart_video80_device::initialize_cartridge(std::string &message)
 {
-	if (!cart_rom_region())
-	{
+	if (!cart_rom_region()) {
 		message = "msx_cart_video80_device: Required region 'rom' was not found.";
 		return image_error::INTERNAL;
 	}
 
-	if (cart_rom_region()->bytes() != 0x1000)
-	{
+	if (cart_rom_region()->bytes() != 0x1000) {
 		message = "msx_cart_video80_device: Region 'rom' has invalid size.";
 		return image_error::INVALIDLENGTH;
 	}
@@ -121,8 +118,7 @@ void msx_cart_video80_device::device_add_mconfig(machine_config &config)
 
 void msx_cart_video80_device::de_w(int state)
 {
-	if (m_cpu_waiting && !state)
-	{
+	if (m_cpu_waiting && !state) {
 		maincpu().set_input_line(Z80_INPUT_LINE_WAIT, CLEAR_LINE);
 		m_cpu_waiting = false;
 	}
@@ -130,30 +126,26 @@ void msx_cart_video80_device::de_w(int state)
 
 uint8_t msx_cart_video80_device::vram_r(offs_t addr)
 {
-	if (!machine().side_effects_disabled() && m_crtc->de_r())
-	{
+	uint8_t res = 0;
+
+	if (!machine().side_effects_disabled() && m_crtc->de_r()) {
 		maincpu().set_input_line(Z80_INPUT_LINE_WAIT, ASSERT_LINE);
 		maincpu().defer_access();
 		m_cpu_waiting = true;
-		return 0;
+	} else {
+		res = m_vram[ addr ];
 	}
-	else
-	{
-		return m_vram[addr];
-	}
+	return res;
 }
 
 void msx_cart_video80_device::vram_w(offs_t addr, uint8_t data)
 {
-	if (!machine().side_effects_disabled() && m_crtc->de_r())
-	{
+	if (!machine().side_effects_disabled() && m_crtc->de_r()) {
 		maincpu().set_input_line(Z80_INPUT_LINE_WAIT, ASSERT_LINE);
 		maincpu().defer_access();
 		m_cpu_waiting = true;
-	}
-	else
-	{
-		m_vram[addr] = data;
+	} else {
+		m_vram[ addr ] = data;
 	}
 }
 
@@ -161,15 +153,13 @@ uint8_t msx_cart_video80_device::crtc_r(offs_t addr)
 {
 	uint8_t res = 0;
 
-	if (BIT(addr, 1))
-	{
-		if (BIT(addr, 0))
+	if (BIT(addr, 1)) {
+		if (BIT(addr, 0)) {
 			res = m_crtc->register_r();
-		else
+		} else {
 			LOG("Reading from non-existing reg!\n");
-	}
-	else
-	{
+		}
+	} else {
 		LOG("Reading from a write-only address!\n");
 	}
 
@@ -178,32 +168,30 @@ uint8_t msx_cart_video80_device::crtc_r(offs_t addr)
 
 void msx_cart_video80_device::crtc_w(offs_t addr, uint8_t data)
 {
-	if (BIT(addr, 1))
-	{
+	if (BIT(addr, 1)) {
 		LOG("Writing to a read-only address!\n");
-	}
-	else
-	{
-		if (BIT(addr, 0))
+	} else {
+		if (BIT(addr, 0)) {
 			m_crtc->register_w(data);
-		else
+		} else {
 			m_crtc->address_w(data);
+		}
 	}
 }
 
 MC6845_UPDATE_ROW(msx_cart_video80_device::crtc_update_row)
 {
-	pen_t const *const pen = m_palette->pens();
-	for (int i = 0; i < x_count; i++)
-	{
-		uint8_t const char_code = m_vram[(ma + i) & 0x7ff];
-		uint8_t pixels = m_vram[(unsigned(char_code) << 3) | 0x800 | (ra & 7)];
-		bool const cursor = cursor_x == i;
-		if (cursor)
+	const pen_t *pen = m_palette->pens();
+	for (int i = 0; i < x_count; i++) {
+		uint8_t char_code = m_vram[ (ma + i) & 0x7ff ];
+		uint8_t pixels = m_vram[ (unsigned(char_code) << 3) | 0x800 | (ra & 7) ];
+		bool cursor = cursor_x == i;
+		if (cursor) {
 			pixels = ~pixels;
-
-		for (unsigned col = 0; col < 8; col++)
-			bitmap.pix(y, i * 8 + col) = pen[BIT(pixels, 7 - col)];
+		}
+		for (unsigned col = 0; col < 8; col++) {
+			bitmap.pix(y, i * 8 + col) = pen[ BIT(pixels, 7 - col) ];
+		}
 	}
 }
 

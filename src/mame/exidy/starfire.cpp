@@ -419,12 +419,13 @@ void fireone_state::fireone(machine_config &config)
 	m_pit->out_handler<2>().set(FUNC(fireone_state::music_c_out_cb));
 
 	/* sound hardware */
-	SPEAKER(config, "speaker", 2).front();
+	SPEAKER(config, "lspeaker").front_left();
+	SPEAKER(config, "rspeaker").front_right();
 
 	NETLIST_SOUND(config, "sound_nl", 48000)
 		.set_source(NETLIST_NAME(fireone))
-		.add_route(0, "speaker", 1.0, 0)
-		.add_route(1, "speaker", 1.0, 1);
+		.add_route(0, "lspeaker", 1.0)
+		.add_route(1, "rspeaker", 1.0);
 
 	NETLIST_LOGIC_INPUT(config, "sound_nl:ltorp", "LTORP.IN", 0);
 	NETLIST_LOGIC_INPUT(config, "sound_nl:lshpht", "LSHPHT.IN", 0);

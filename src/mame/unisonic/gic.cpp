@@ -245,8 +245,10 @@ TIMER_CALLBACK_MEMBER(gic_device::vblank_tick)
 
 #define GIC_AUDIO_BYTE 0x96
 
-void gic_device::sound_stream_update(sound_stream &stream)
+void gic_device::sound_stream_update(sound_stream &stream, std::vector<read_stream_view> const &inputs, std::vector<write_stream_view> &outputs)
 {
+	auto &buffer = outputs[0];
+
 	//Audio is basic and badly implemented (doubt that was the intent)
 	//The datasheet lists the 3 different frequencies the GIC can generate: 500,1000 and 2000Hz
 	//but it is clear (for an audio guy at least) that the resulting spectrum
@@ -289,6 +291,8 @@ void gic_device::sound_stream_update(sound_stream &stream)
 	uint8_t audioByte = m_ram(GIC_AUDIO_BYTE)*2;
 
 	if(!audioByte){
+		buffer.fill(0);
+
 		m_audioval   = 0;
 		m_audiocnt   = 0;
 		m_audioreset = 0;
@@ -302,12 +306,12 @@ void gic_device::sound_stream_update(sound_stream &stream)
 		m_audioreset = 0;
 	}
 
-	for(size_t i=0; i < stream.samples(); i++){
+	for(size_t i=0; i < buffer.samples(); i++){
 		m_audiocnt++;
 		if(m_audiocnt >= audioByte){
 			m_audioval = !m_audioval;
 			m_audiocnt=0;
 		}
-		stream.put(0, i, m_audioval ? 1.0 : 0.0);
+		buffer.put(i, m_audioval ? 1.0 : 0.0);
 	}
 }

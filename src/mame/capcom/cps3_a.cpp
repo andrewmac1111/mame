@@ -55,8 +55,12 @@ void cps3_sound_device::device_start()
 //  sound_stream_update - handle a stream update
 //-------------------------------------------------
 
-void cps3_sound_device::sound_stream_update(sound_stream &stream)
+void cps3_sound_device::sound_stream_update(sound_stream &stream, std::vector<read_stream_view> const &inputs, std::vector<write_stream_view> &outputs)
 {
+	/* Clear the buffers */
+	outputs[0].fill(0);
+	outputs[1].fill(0);
+
 	for (int i = 0; i < 16; i ++)
 	{
 		if (m_key & (1 << i))
@@ -99,7 +103,7 @@ void cps3_sound_device::sound_stream_update(sound_stream &stream)
 			loop -= 0x400000;
 
 			/* Go through the buffer and add voice contributions */
-			for (int j = 0; j < stream.samples(); j++)
+			for (int j = 0; j < outputs[0].samples(); j++)
 			{
 				int32_t sample;
 
@@ -123,13 +127,20 @@ void cps3_sound_device::sound_stream_update(sound_stream &stream)
 				sample = m_base[BYTE4_XOR_LE(start + pos)];
 				frac += step;
 
-				stream.add_int(0, j, sample * vol_l, 32768 << 8);
-				stream.add_int(1, j, sample * vol_r, 32768 << 8);
+				outputs[0].add_int(j, sample * vol_l, 32768 << 8);
+				outputs[1].add_int(j, sample * vol_r, 32768 << 8);
 			}
 
 			vptr->pos = pos;
 			vptr->frac = frac;
 		}
+	}
+
+	// clamp the output; unknown what the real chip does
+	for (int sampindex = 0; sampindex < outputs[0].samples(); sampindex++)
+	{
+		outputs[0].put_clamp(sampindex, outputs[0].getraw(sampindex));
+		outputs[1].put_clamp(sampindex, outputs[1].getraw(sampindex));
 	}
 }
 

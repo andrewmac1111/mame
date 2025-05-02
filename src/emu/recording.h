@@ -50,7 +50,6 @@ public:
 	screen_device *screen()                 { return m_screen; }
 	attotime frame_period()                 { return m_frame_period; }
 	void set_next_frame_time(attotime time) { m_next_frame_time = time; }
-	void set_channel_count(int channels)    { m_channels = channels; }
 	attotime next_frame_time() const        { return m_next_frame_time; }
 
 	// methods
@@ -64,8 +63,6 @@ public:
 	static const char *format_file_extension(format fmt);
 
 protected:
-	int             m_channels;             // count of audio channels
-
 	// ctor
 	movie_recording(screen_device *screen);
 	movie_recording(const movie_recording &) = delete;

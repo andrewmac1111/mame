@@ -112,11 +112,12 @@ void atom2_state::atom2(machine_config &config)
 	PALETTE(config, "palette").set_entries(65536);
 
 	/* sound hardware */
-	SPEAKER(config, "speaker", 2).front();
+	SPEAKER(config, "lspeaker").front_left();
+	SPEAKER(config, "rspeaker").front_right();
 
 	ymz770_device &ymz770(YMZ770(config, "ymz770", 16.384_MHz_XTAL));
-	ymz770.add_route(0, "speaker", 1.0, 0);
-	ymz770.add_route(1, "speaker", 1.0, 1);
+	ymz770.add_route(0, "lspeaker", 1.0);
+	ymz770.add_route(1, "rspeaker", 1.0);
 }
 
 

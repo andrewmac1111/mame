@@ -420,9 +420,9 @@ void mea8000_device::stop_frame()
 
 
 
-void mea8000_device::sound_stream_update(sound_stream &stream)
+void mea8000_device::sound_stream_update(sound_stream &stream, std::vector<read_stream_view> const &inputs, std::vector<write_stream_view> &outputs)
 {
-	stream.fill(0, sound_stream::sample_t(m_output) * (1.0 / 32768.0));
+	outputs[0].fill(stream_buffer::sample_t(m_output) * (1.0 / 32768.0));
 }
 
 /* next sample in frame, sampling at 64 kHz */

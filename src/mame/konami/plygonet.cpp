@@ -1058,7 +1058,7 @@ void polygonet_state::plygonet(machine_config &config)
 	WATCHDOG_TIMER(config, m_watchdog);
 
 	// Networking hardware
-	K056230(config, m_k056230);
+	K056230(config, m_k056230, 0U);
 	m_k056230->irq_cb().set_inputline(m_maincpu, M68K_IRQ_3);
 
 	// Video hardware
@@ -1077,14 +1077,15 @@ void polygonet_state::plygonet(machine_config &config)
 	m_k053936->set_wrap(true);
 
 	// Sound hardware
-	SPEAKER(config, "speaker", 2).front();
+	SPEAKER(config, "lspeaker").front_left();
+	SPEAKER(config, "rspeaker").front_right();
 
-	K054321(config, m_k054321, "speaker");
+	K054321(config, m_k054321, "lspeaker", "rspeaker");
 
 	k054539_device &k054539(K054539(config, "k054539", XTAL(18'432'000)));
 	k054539.timer_handler().set(FUNC(polygonet_state::k054539_nmi_gen));
-	k054539.add_route(0, "speaker", 0.75, 0);
-	k054539.add_route(1, "speaker", 0.75, 1);
+	k054539.add_route(0, "lspeaker", 0.75);
+	k054539.add_route(1, "rspeaker", 0.75);
 }
 
 
@@ -1147,5 +1148,5 @@ ROM_END
 //-------------------------------------------------
 
 //    YEAR  NAME      PARENT   MACHINE   INPUT      STATE            INIT
-GAME( 1993, plygonet, 0,       plygonet, polygonet, polygonet_state, empty_init, ROT90, "Konami", "Polygonet Commanders (ver UAA)", MACHINE_IMPERFECT_GRAPHICS | MACHINE_SUPPORTS_SAVE | MACHINE_NODEVICE_LAN )
-GAME( 1993, polynetw, 0,       plygonet, polynetw,  polygonet_state, empty_init, ROT90, "Konami", "Poly-Net Warriors (ver JAA)",    MACHINE_IMPERFECT_GRAPHICS | MACHINE_SUPPORTS_SAVE | MACHINE_NODEVICE_LAN )
+GAME( 1993, plygonet, 0,       plygonet, polygonet, polygonet_state, empty_init, ROT90, "Konami", "Polygonet Commanders (ver UAA)", MACHINE_IMPERFECT_GRAPHICS | MACHINE_SUPPORTS_SAVE )
+GAME( 1993, polynetw, 0,       plygonet, polynetw,  polygonet_state, empty_init, ROT90, "Konami", "Poly-Net Warriors (ver JAA)",    MACHINE_IMPERFECT_GRAPHICS | MACHINE_SUPPORTS_SAVE )

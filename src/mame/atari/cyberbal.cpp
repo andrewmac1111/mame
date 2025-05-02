@@ -773,13 +773,14 @@ void cyberbal_state::cyberbal(machine_config &config)
 	m_rscreen->set_palette("rpalette");
 
 	// sound hardware
-	SPEAKER(config, "speaker", 2).front();
+	SPEAKER(config, "lspeaker").front_left();
+	SPEAKER(config, "rspeaker").front_right();
 
 	ATARI_SAC(config, m_sac);
 	m_sac->main_int_cb().set_inputline(m_maincpu, M68K_IRQ_1);
 	m_sac->test_read_cb().set_ioport("IN0").bit(15);
-	m_sac->add_route(0, "speaker", 1.0, 0);
-	m_sac->add_route(1, "speaker", 1.0, 1);
+	m_sac->add_route(0, "lspeaker", 1.0);
+	m_sac->add_route(1, "rspeaker", 1.0);
 }
 
 void cyberbal_state::cyberbalt(machine_config &config)

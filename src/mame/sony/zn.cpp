@@ -54,7 +54,7 @@ zn_state::zn_state(const machine_config &mconfig, device_type type, const char *
 	m_spu(*this, "spu"),
 	m_gpu(*this, "gpu"),
 	m_screen(*this, "screen"),
-	m_speaker(*this, "speaker" ),
+	m_speaker(*this, { "lspeaker", "rspeaker" }),
 	m_at28c16(*this, "at28c16"),
 	m_cat702(*this, "cat702_%u", 1),
 	m_ram(*this, "maincpu:ram"),
@@ -105,10 +105,11 @@ void zn_state::zn_base(machine_config &config)
 
 	SCREEN(config, m_screen, SCREEN_TYPE_RASTER);
 
-	m_spu->add_route(0, m_speaker, 0.35, 0);
-	m_spu->add_route(1, m_speaker, 0.35, 1);
+	m_spu->add_route(0, m_speaker[0], 0.35);
+	m_spu->add_route(1, m_speaker[1], 0.35);
 
-	SPEAKER(config, m_speaker, 2).front();
+	SPEAKER(config, m_speaker[0]).front_left();
+	SPEAKER(config, m_speaker[1]).front_right();
 
 	AT28C16(config, m_at28c16, 0);
 
@@ -578,8 +579,8 @@ protected:
 		m_soundlatch->data_pending_callback().set_inputline(m_audiocpu, INPUT_LINE_NMI);
 
 		QSOUND(config, m_qsound);
-		m_qsound->add_route(0, m_speaker, 1.0, 0);
-		m_qsound->add_route(1, m_speaker, 1.0, 1);
+		m_qsound->add_route(0, m_speaker[0], 1.0);
+		m_qsound->add_route(1, m_speaker[1], 1.0);
 	}
 
 	virtual void driver_start() override ATTR_COLD
@@ -965,10 +966,10 @@ public:
 
 		YM2610B(config, m_ym2610b, 16_MHz_XTAL / 2);
 		m_ym2610b->irq_handler().set_inputline(m_audiocpu, 0);
-		m_ym2610b->add_route(0, m_speaker, 0.75, 0);
-		m_ym2610b->add_route(0, m_speaker, 0.75, 1);
-		m_ym2610b->add_route(1, m_speaker, 1.0, 0);
-		m_ym2610b->add_route(2, m_speaker, 1.0, 1);
+		m_ym2610b->add_route(0, m_speaker[0], 0.75);
+		m_ym2610b->add_route(0, m_speaker[1], 0.75);
+		m_ym2610b->add_route(1, m_speaker[0], 1.0);
+		m_ym2610b->add_route(2, m_speaker[1], 1.0);
 
 		MB3773(config, m_mb3773);
 
@@ -1059,12 +1060,12 @@ protected:
 		MB3773(config, m_mb3773);
 
 		m_spu->reset_routes();
-		m_spu->add_route(0, m_speaker, 0.3, 0);
-		m_spu->add_route(1, m_speaker, 0.3, 1);
+		m_spu->add_route(0, m_speaker[0], 0.3);
+		m_spu->add_route(1, m_speaker[1], 0.3);
 
 		TAITO_ZOOM(config, m_zoom);
-		m_zoom->add_route(0, m_speaker, 1.0, 0);
-		m_zoom->add_route(1, m_speaker, 1.0, 1);
+		m_zoom->add_route(0, m_speaker[0], 1.0);
+		m_zoom->add_route(1, m_speaker[1], 1.0);
 	}
 
 	virtual void driver_start() override ATTR_COLD
@@ -1570,8 +1571,8 @@ public:
 		GENERIC_LATCH_8(config, m_soundlatch);
 
 		ymf271_device &ymf(YMF271(config, "ymf", XTAL(16'934'400)));
-		ymf.add_route(0, m_speaker, 1.0, 0);
-		ymf.add_route(1, m_speaker, 1.0, 1);
+		ymf.add_route(0, m_speaker[0], 1.0);
+		ymf.add_route(1, m_speaker[1], 1.0);
 	}
 
 protected:
@@ -1665,8 +1666,8 @@ public:
 		GENERIC_LATCH_8(config, m_soundlatch);
 
 		okim6295_device &oki(OKIM6295(config, "oki", 1000000, okim6295_device::PIN7_LOW)); // clock frequency & pin 7 not verified
-		oki.add_route(ALL_OUTPUTS, m_speaker, 1.0, 0);
-		oki.add_route(ALL_OUTPUTS, m_speaker, 1.0, 1);
+		oki.add_route(ALL_OUTPUTS, m_speaker[0], 1.0);
+		oki.add_route(ALL_OUTPUTS, m_speaker[1], 1.0);
 		oki.set_addrmap(0, &beastrzrb_state::oki_map);
 	}
 
@@ -2241,8 +2242,8 @@ public:
 		ADDRESS_MAP_BANK(config, m_bankmap).set_map(&nbajamex_state::bank_map).set_options(ENDIANNESS_LITTLE, 32, 24, 0x800000);
 
 		ACCLAIM_RAX(config, m_rax, 0);
-		m_rax->add_route(0, m_speaker, 1.0, 0);
-		m_rax->add_route(1, m_speaker, 1.0, 1);
+		m_rax->add_route(0, m_speaker[0], 1.0);
+		m_rax->add_route(1, m_speaker[1], 1.0);
 	}
 
 protected:
@@ -2501,13 +2502,13 @@ public:
 		m_soundlatch16->data_pending_callback().set_inputline(m_audiocpu, 3);
 
 		m_spu->reset_routes();
-		m_spu->add_route(0, m_speaker, 0.175, 0);
-		m_spu->add_route(1, m_speaker, 0.175, 1);
+		m_spu->add_route(0, m_speaker[0], 0.175);
+		m_spu->add_route(1, m_speaker[1], 0.175);
 
 		YMZ280B(config, m_ymz280b, XTAL(16'934'400));
 		m_ymz280b->irq_handler().set_inputline(m_audiocpu, 2);
-		m_ymz280b->add_route(0, m_speaker, 0.35, 0);
-		m_ymz280b->add_route(1, m_speaker, 0.35, 1);
+		m_ymz280b->add_route(0, m_speaker[0], 0.35);
+		m_ymz280b->add_route(1, m_speaker[1], 0.35);
 	}
 
 protected:
@@ -2891,8 +2892,8 @@ public:
 		config.set_maximum_quantum(attotime::from_hz(6000));
 
 		YMZ280B(config, m_ymz280b, XTAL(16'934'400));
-		m_ymz280b->add_route(0, m_speaker, 0.35, 0);
-		m_ymz280b->add_route(1, m_speaker, 0.35, 1);
+		m_ymz280b->add_route(0, m_speaker[0], 0.35);
+		m_ymz280b->add_route(1, m_speaker[1], 0.35);
 	}
 
 protected:

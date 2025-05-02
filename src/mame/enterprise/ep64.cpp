@@ -594,14 +594,15 @@ void ep64_state::ep64(machine_config &config)
 	m_nick->virq_wr_callback().set(m_dave, FUNC(dave_device::int1_w));
 
 	// sound hardware
-	SPEAKER(config, "speaker", 2).front();
+	SPEAKER(config, "lspeaker").front_left();
+	SPEAKER(config, "rspeaker").front_right();
 
 	DAVE(config, m_dave, XTAL(8'000'000));
 	m_dave->set_addrmap(AS_PROGRAM, &ep64_state::dave_64k_mem);
 	m_dave->set_addrmap(AS_IO, &ep64_state::dave_io);
 	m_dave->irq_wr().set_inputline(Z80_TAG, INPUT_LINE_IRQ0);
-	m_dave->add_route(0, "speaker", 0.25, 0);
-	m_dave->add_route(1, "speaker", 0.25, 1);
+	m_dave->add_route(0, "lspeaker", 0.25);
+	m_dave->add_route(1, "rspeaker", 0.25);
 
 	// devices
 	EP64_EXPANSION_BUS_SLOT(config, m_exp, nullptr);
@@ -622,12 +623,12 @@ void ep64_state::ep64(machine_config &config)
 	CASSETTE(config, m_cassette1);
 	m_cassette1->set_default_state(CASSETTE_STOPPED | CASSETTE_MOTOR_DISABLED | CASSETTE_SPEAKER_ENABLED);
 	m_cassette1->set_interface("ep64_cass");
-	m_cassette1->add_route(ALL_OUTPUTS, "speaker", 0.05, 0);
+	m_cassette1->add_route(ALL_OUTPUTS, "lspeaker", 0.05);
 
 	CASSETTE(config, m_cassette2);
 	m_cassette2->set_default_state(CASSETTE_STOPPED | CASSETTE_MOTOR_DISABLED | CASSETTE_SPEAKER_ENABLED);
 	m_cassette2->set_interface("ep64_cass");
-	m_cassette2->add_route(ALL_OUTPUTS, "speaker", 0.05, 1);
+	m_cassette2->add_route(ALL_OUTPUTS, "rspeaker", 0.05);
 
 	// internal RAM
 	RAM(config, m_ram).set_default_size("64K");

@@ -269,8 +269,8 @@ void macvail_state::maclc3_base(machine_config &config)
 	NSCSI_CONNECTOR(config, "scsi:3").option_set("cdrom", NSCSI_CDROM_APPLE).machine_config(
 		[](device_t *device)
 		{
-			device->subdevice<cdda_device>("cdda")->add_route(0, "^^speaker", 1.0, 0);
-			device->subdevice<cdda_device>("cdda")->add_route(1, "^^speaker", 1.0, 1);
+			device->subdevice<cdda_device>("cdda")->add_route(0, "^^lspeaker", 1.0);
+			device->subdevice<cdda_device>("cdda")->add_route(1, "^^rspeaker", 1.0);
 		});
 	NSCSI_CONNECTOR(config, "scsi:4", mac_scsi_devices, nullptr);
 	NSCSI_CONNECTOR(config, "scsi:5", mac_scsi_devices, nullptr);
@@ -309,11 +309,12 @@ void macvail_state::maclc3_base(machine_config &config)
 	rs232b.dcd_handler().set(m_scc, FUNC(z80scc_device::dcdb_w));
 	rs232b.cts_handler().set(m_scc, FUNC(z80scc_device::ctsb_w));
 
-	SPEAKER(config, "speaker", 2).front();
+	SPEAKER(config, "lspeaker").front_left();
+	SPEAKER(config, "rspeaker").front_right();
 
 	APPLE_DFAC(config, m_dfac, 22257);
-	m_dfac->add_route(0, "speaker", 1.0, 0);
-	m_dfac->add_route(1, "speaker", 1.0, 1);
+	m_dfac->add_route(0, "lspeaker", 1.0);
+	m_dfac->add_route(1, "rspeaker", 1.0);
 
 	APPLE_OMEGA(config, m_omega, 31.3344_MHz_XTAL);
 	m_omega->pclock_changed().set(m_sonora, FUNC(sonora_device::pixel_clock_w));
@@ -321,8 +322,8 @@ void macvail_state::maclc3_base(machine_config &config)
 	SONORA(config, m_sonora, C15M);
 	m_sonora->set_maincpu_tag("maincpu");
 	m_sonora->set_rom_tag("bootrom");
-	m_sonora->add_route(0, m_dfac, 1.0, 0);
-	m_sonora->add_route(1, m_dfac, 1.0, 1);
+	m_sonora->add_route(0, m_dfac, 1.0);
+	m_sonora->add_route(1, m_dfac, 1.0);
 
 	nubus_device &nubus(NUBUS(config, "pds", 0));
 	nubus.set_space(m_maincpu, AS_PROGRAM);
@@ -395,8 +396,8 @@ void macvail_state::maclc520(machine_config &config)
 
 	// DFAC only is found in machines with Egret, and not the IIsi
 	m_sonora->reset_routes();
-	m_sonora->add_route(0, "speaker", 1.0, 0);
-	m_sonora->add_route(1, "speaker", 1.0, 1);
+	m_sonora->add_route(0, "lspeaker", 1.0);
+	m_sonora->add_route(1, "rspeaker", 1.0);
 	config.device_remove("dfac");
 }
 

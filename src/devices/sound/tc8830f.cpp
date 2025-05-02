@@ -82,11 +82,11 @@ void tc8830f_device::device_clock_changed()
 
 
 
-void tc8830f_device::sound_stream_update(sound_stream &stream)
+void tc8830f_device::sound_stream_update(sound_stream &stream, std::vector<read_stream_view> const &inputs, std::vector<write_stream_view> &outputs)
 {
 	int32_t mix = 0;
 
-	for (int i = 0; i < stream.samples(); i++)
+	for (int i = 0; i < outputs[0].samples(); i++)
 	{
 		if (m_playing)
 		{
@@ -128,7 +128,7 @@ void tc8830f_device::sound_stream_update(sound_stream &stream)
 			mix = m_output;
 		}
 
-		stream.put_int(0, i, mix, 32768);
+		outputs[0].put_int(i, mix, 32768);
 	}
 }
 

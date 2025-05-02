@@ -157,12 +157,13 @@ void ymtx81z_state::tx81z(machine_config &config)
 	lcdc.set_lcd_size(2, 16);
 	lcdc.set_pixel_update_cb(FUNC(ymtx81z_state::lcd_pixel_update));
 
-	SPEAKER(config, "speaker", 2).front();
+	SPEAKER(config, "lspeaker").front_left();
+	SPEAKER(config, "rspeaker").front_right();
 
 	ym2414_device &ymsnd(YM2414(config, "ymsnd", 7.15909_MHz_XTAL / 2));
 	ymsnd.irq_handler().set_inputline(m_maincpu, HD6301_IRQ1_LINE);
-	ymsnd.add_route(0, "speaker", 0.60, 0);
-	ymsnd.add_route(1, "speaker", 0.60, 1);
+	ymsnd.add_route(0, "lspeaker", 0.60);
+	ymsnd.add_route(1, "rspeaker", 0.60);
 }
 
 ROM_START(tx81z)

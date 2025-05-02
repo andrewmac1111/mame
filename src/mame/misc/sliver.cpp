@@ -541,14 +541,15 @@ void sliver_state::sliver(machine_config &config)
 	ramdac_device &ramdac(RAMDAC(config, "ramdac", 0, "palette"));
 	ramdac.set_addrmap(0, &sliver_state::ramdac_map);
 
-	SPEAKER(config, "speaker", 2).front();
+	SPEAKER(config, "lspeaker").front_left();
+	SPEAKER(config, "rspeaker").front_right();
 
 	GENERIC_LATCH_8(config, m_soundlatch);
 
 	okim6295_device &oki(OKIM6295(config, "oki", 1000000, okim6295_device::PIN7_HIGH));
 	oki.set_addrmap(0, &sliver_state::oki_map);
-	oki.add_route(ALL_OUTPUTS, "speaker", 0.6, 0);
-	oki.add_route(ALL_OUTPUTS, "speaker", 0.6, 1);
+	oki.add_route(ALL_OUTPUTS, "lspeaker", 0.6);
+	oki.add_route(ALL_OUTPUTS, "rspeaker", 0.6);
 }
 
 ROM_START( sliver )

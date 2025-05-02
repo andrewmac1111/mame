@@ -1789,7 +1789,8 @@ void itech32_state::base_devices(machine_config &config)
 	m_screen->set_palette(m_palette);
 	m_screen->screen_vblank().set(FUNC(itech32_state::generate_int1));
 
-	SPEAKER(config, "speaker", 2).front();
+	SPEAKER(config, "lspeaker").front_left();
+	SPEAKER(config, "rspeaker").front_right();
 
 	ES5506(config, m_ensoniq, SOUND_CLOCK);
 	m_ensoniq->set_region0("ensoniq.0");
@@ -1797,8 +1798,8 @@ void itech32_state::base_devices(machine_config &config)
 	m_ensoniq->set_region2("ensoniq.2");
 	m_ensoniq->set_region3("ensoniq.3");
 	m_ensoniq->set_channels(1);               // channels
-	m_ensoniq->add_route(0, "speaker", 0.1, 1); // swapped stereo
-	m_ensoniq->add_route(1, "speaker", 0.1, 0);
+	m_ensoniq->add_route(0, "rspeaker", 0.1); // swapped stereo
+	m_ensoniq->add_route(1, "lspeaker", 0.1);
 }
 
 void itech32_state::via(machine_config &config)

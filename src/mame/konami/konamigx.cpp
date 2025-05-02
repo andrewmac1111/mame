@@ -99,17 +99,6 @@
 #include "emu.h"
 #include "konamigx.h"
 
-#include "cpu/m68000/m68000.h"
-#include "cpu/m68000/m68020.h"
-#include "cpu/tms57002/tms57002.h"
-#include "cpu/z80/z80.h"
-#include "machine/eepromser.h"
-#include "sound/k054539.h"
-//#include "machine/k056230.h"
-#include "sound/k056800.h"
-#include "sound/okim6295.h"
-#include "speaker.h"
-
 #include "layout/generic.h"
 
 
@@ -1085,8 +1074,8 @@ void konamigx_state::gx_type1_map(address_map &map)
 void konamigx_state::racinfrc_map(address_map &map)
 {
 	gx_type1_map(map);
-	map(0xdc0000, 0xdc1fff).ram();         // 056230 RAM?
-	map(0xdd0000, 0xdd00ff).nopr().nopw(); // 056230 regs?
+	map(0xdc0000, 0xdc1fff).rw(m_k056230, FUNC(k056230_device::ram_r), FUNC(k056230_device::ram_w));
+	map(0xdd0000, 0xdd00ff).m(m_k056230, FUNC(k056230_device::regs_map));
 }
 
 void konamigx_state::gx_type2_map(address_map &map)
@@ -1776,12 +1765,13 @@ void konamigx_state::konamigx(machine_config &config)
 	MCFG_VIDEO_START_OVERRIDE(konamigx_state, konamigx_5bpp)
 
 	/* sound hardware */
-	SPEAKER(config, "speaker", 2).front();
+	SPEAKER(config, "lspeaker").front_left();
+	SPEAKER(config, "rspeaker").front_right();
 
-	m_dasp->add_route(0, "speaker", 0.3, 0); // Connected to the aux input of respective 54539.
-	m_dasp->add_route(1, "speaker", 0.3, 1);
-	m_dasp->add_route(2, "speaker", 0.3, 0);
-	m_dasp->add_route(3, "speaker", 0.3, 1);
+	m_dasp->add_route(0, "lspeaker", 0.3); // Connected to the aux input of respective 54539.
+	m_dasp->add_route(1, "rspeaker", 0.3);
+	m_dasp->add_route(2, "lspeaker", 0.3);
+	m_dasp->add_route(3, "rspeaker", 0.3);
 
 	K056800(config, m_k056800, XTAL(18'432'000));
 	m_k056800->int_callback().set_inputline(m_soundcpu, M68K_IRQ_1);
@@ -1791,15 +1781,15 @@ void konamigx_state::konamigx(machine_config &config)
 	m_k054539_1->timer_handler().set(FUNC(konamigx_state::k054539_irq_gen));
 	m_k054539_1->add_route(0, "dasp", 0.5, 0);
 	m_k054539_1->add_route(1, "dasp", 0.5, 1);
-	m_k054539_1->add_route(0, "speaker", 1.0, 0);
-	m_k054539_1->add_route(1, "speaker", 1.0, 1);
+	m_k054539_1->add_route(0, "lspeaker", 1.0);
+	m_k054539_1->add_route(1, "rspeaker", 1.0);
 
 	K054539(config, m_k054539_2, XTAL(18'432'000));
 	m_k054539_2->set_device_rom_tag("k054539");
 	m_k054539_2->add_route(0, "dasp", 0.5, 2);
 	m_k054539_2->add_route(1, "dasp", 0.5, 3);
-	m_k054539_2->add_route(0, "speaker", 1.0, 0);
-	m_k054539_2->add_route(1, "speaker", 1.0, 1);
+	m_k054539_2->add_route(0, "lspeaker", 1.0);
+	m_k054539_2->add_route(1, "rspeaker", 1.0);
 }
 
 void konamigx_state::konamigx_bios(machine_config &config)
@@ -1917,6 +1907,9 @@ void konamigx_state::racinfrc(machine_config &config)
 
 	adc0834_device &adc(ADC0834(config, "adc0834", 0));
 	adc.set_input_callback(FUNC(konamigx_state::adc0834_callback));
+
+	K056230(config, m_k056230, 0U);
+	m_k056230->irq_cb().set_inputline(m_maincpu, M68K_IRQ_5);
 }
 
 void konamigx_state::gxtype3(machine_config &config)

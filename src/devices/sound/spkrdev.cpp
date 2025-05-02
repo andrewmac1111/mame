@@ -187,18 +187,19 @@ void speaker_sound_device::device_post_load()
 //-------------------------------------------------
 
 // This can be triggered by the core (based on emulated time) or via level_w().
-void speaker_sound_device::sound_stream_update(sound_stream &stream)
+void speaker_sound_device::sound_stream_update(sound_stream &stream, std::vector<read_stream_view> const &inputs, std::vector<write_stream_view> &outputs)
 {
+	auto &buffer = outputs[0];
 	double volume = m_levels[m_level];
 	double filtered_volume;
 	attotime sampled_time = attotime::zero;
 
-	if (stream.samples() > 0)
+	if (buffer.samples() > 0)
 	{
 		/* Prepare to update time state */
 		sampled_time = attotime(0, m_channel_sample_period);
-		if (stream.samples() > 1)
-			sampled_time *= stream.samples();
+		if (buffer.samples() > 1)
+			sampled_time *= buffer.samples();
 
 		/* Note: since the stream is in the process of being updated,
 		 * stream->sample_time() will return the time before the update! (MAME 0.130)
@@ -206,19 +207,19 @@ void speaker_sound_device::sound_stream_update(sound_stream &stream)
 		 */
 	}
 
-	for (int sampindex = 0; sampindex < stream.samples(); )
+	for (int sampindex = 0; sampindex < buffer.samples(); )
 	{
 		/* Note that first intermediate sample may be composed... */
 		filtered_volume = update_interm_samples_get_filtered_volume(volume);
 
 		/* Composite volume is now quantized to the stream resolution */
-		stream.put(0, sampindex++, filtered_volume);
+		buffer.put(sampindex++, filtered_volume);
 
 		/* Any additional samples will be homogeneous, however may need filtering across samples: */
-		while (sampindex < stream.samples())
+		while (sampindex < buffer.samples())
 		{
 			filtered_volume = update_interm_samples_get_filtered_volume(volume);
-			stream.put(0, sampindex++, filtered_volume);
+			buffer.put(sampindex++, filtered_volume);
 		}
 
 		/* Update the time state */

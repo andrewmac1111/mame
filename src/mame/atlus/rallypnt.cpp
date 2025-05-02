@@ -131,11 +131,12 @@ void rallypnt_state::rallypnt(machine_config &config)
 	// no video, only lamps
 
 	// sound hardware
-	SPEAKER(config, "speaker", 2).front();
+	SPEAKER(config, "lspeaker").front_left();
+	SPEAKER(config, "rspeaker").front_right();
 
 	ymz280b_device &ymz(YMZ280B(config, "ymz", 32_MHz_XTAL / 2)); // divider unknown (or 16.9344 MHz internal?)
-	ymz.add_route(0, "speaker", 1.0, 0);
-	ymz.add_route(1, "speaker", 1.0, 1);
+	ymz.add_route(0, "lspeaker", 1.0);
+	ymz.add_route(1, "rspeaker", 1.0);
 }
 
 

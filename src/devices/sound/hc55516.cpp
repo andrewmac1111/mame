@@ -197,12 +197,15 @@ void cvsd_device_base::process_bit(bool bit, bool clock_state)
 //  sound_stream_update - handle a stream update
 //-------------------------------------------------
 
-void cvsd_device_base::sound_stream_update(sound_stream &stream)
+void cvsd_device_base::sound_stream_update(sound_stream &stream, std::vector<read_stream_view> const &inputs, std::vector<write_stream_view> &outputs)
 {
 	// Stub, just return silence
-	m_samples_generated += stream.samples();
+	auto &buffer = outputs[0];
+
+	m_samples_generated += buffer.samples();
 	if (m_samples_generated >= SAMPLE_RATE)
 		m_samples_generated -= SAMPLE_RATE;
+	buffer.fill(0);
 }
 
 
@@ -353,14 +356,16 @@ void hc55516_device::process_bit(bool bit, bool clock_state)
 //  sound_stream_update_legacy - handle a stream update
 //-------------------------------------------------
 
-void hc55516_device::sound_stream_update(sound_stream &stream)
+void hc55516_device::sound_stream_update(sound_stream &stream, std::vector<read_stream_view> const &inputs, std::vector<write_stream_view> &outputs)
 {
+	auto &buffer = outputs[0];
+
 	if (is_external_oscillator())
 	{
 		// external oscillator
-		for (int i = 0; i < stream.samples(); i++)
+		for (int i = 0; i < buffer.samples(); i++)
 		{
-			stream.put_int(0, i, m_next_sample, 32768);
+			buffer.put_int(i, m_next_sample, 32768);
 
 			m_samples_generated++;
 
@@ -379,8 +384,8 @@ void hc55516_device::sound_stream_update(sound_stream &stream)
 	// software driven clock
 	else
 	{
-		for (int i = 0; i < stream.samples(); i++)
-			stream.put_int(0, i, m_next_sample, 32768);
+		for (int i = 0; i < buffer.samples(); i++)
+			buffer.put_int(i, m_next_sample, 32768);
 	}
 }
 
@@ -488,12 +493,14 @@ void mc3417_device::process_bit(bool bit, bool clock_state)
 	}
 }
 
-void mc3417_device::sound_stream_update(sound_stream &stream)
+void mc3417_device::sound_stream_update(sound_stream &stream, std::vector<read_stream_view> const &inputs, std::vector<write_stream_view> &outputs)
 {
+	auto &buffer = outputs[0];
+
 	if (!is_external_oscillator())
 	{
 		// track how many samples we've updated without a clock; if it's been more than 1/32 of a second, output silence
-		m_samples_generated += stream.samples();
+		m_samples_generated += buffer.samples();
 		if (m_samples_generated > SAMPLE_RATE / 32)
 		{
 			m_samples_generated = SAMPLE_RATE;
@@ -502,16 +509,16 @@ void mc3417_device::sound_stream_update(sound_stream &stream)
 	}
 
 	// compute the interpolation slope
-	sound_stream::sample_t sample = m_curr_sample;
-	sound_stream::sample_t slope = (m_next_sample - sample) / stream.samples();
+	stream_buffer::sample_t sample = m_curr_sample;
+	stream_buffer::sample_t slope = (m_next_sample - sample) / buffer.samples();
 	m_curr_sample = m_next_sample;
 
 	if (is_external_oscillator())
 	{
 		// external oscillator
-		for (int i = 0; i < stream.samples(); i++, sample += slope)
+		for (int i = 0; i < buffer.samples(); i++, sample += slope)
 		{
-			stream.put(0, i, sample);
+			buffer.put(i, sample);
 
 			m_samples_generated++;
 
@@ -530,8 +537,8 @@ void mc3417_device::sound_stream_update(sound_stream &stream)
 	// software driven clock
 	else
 	{
-		for (int i = 0; i < stream.samples(); i++, sample += slope)
-			stream.put(0, i, sample);
+		for (int i = 0; i < buffer.samples(); i++, sample += slope)
+			buffer.put(i, sample);
 	}
 }
 

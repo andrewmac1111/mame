@@ -85,14 +85,15 @@ void cdp1863_device::device_start()
 //  our sound stream
 //-------------------------------------------------
 
-void cdp1863_device::sound_stream_update(sound_stream &stream)
+void cdp1863_device::sound_stream_update(sound_stream &stream, std::vector<read_stream_view> const &inputs, std::vector<write_stream_view> &outputs)
 {
-	sound_stream::sample_t signal = m_signal;
+	stream_buffer::sample_t signal = m_signal;
+	auto &buffer = outputs[0];
 
 	if (m_oe)
 	{
 		double frequency;
-		int rate = stream.sample_rate() / 2;
+		int rate = buffer.sample_rate() / 2;
 
 		// get progress through wave
 		int incr = m_incr;
@@ -117,9 +118,9 @@ void cdp1863_device::sound_stream_update(sound_stream &stream)
 			signal = 1.0;
 		}
 
-		for (int sampindex = 0; sampindex < stream.samples(); sampindex++)
+		for (int sampindex = 0; sampindex < buffer.samples(); sampindex++)
 		{
-			stream.put(0, sampindex, signal);
+			buffer.put(sampindex, signal);
 			incr -= frequency;
 			while( incr < 0 )
 			{
@@ -132,6 +133,8 @@ void cdp1863_device::sound_stream_update(sound_stream &stream)
 		m_incr = incr;
 		m_signal = signal;
 	}
+	else
+		buffer.fill(0);
 }
 
 

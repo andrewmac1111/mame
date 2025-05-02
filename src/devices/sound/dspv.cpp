@@ -113,8 +113,9 @@ void dspv_device::snd_w(offs_t offset, u16 data)
 	logerror("w %02x, %04x %s\n", offset, data, machine().describe_context());
 }
 
-void dspv_device::sound_stream_update(sound_stream &stream)
+void dspv_device::sound_stream_update(sound_stream &stream, std::vector<read_stream_view> const &inputs, std::vector<write_stream_view> &outputs)
 {
+	outputs[0].fill(0);
 }
 
 void dspv_device::device_start()

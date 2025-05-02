@@ -80,9 +80,12 @@ void arcadia_sound_device::device_reset()
 //  our sound stream
 //-------------------------------------------------
 
-void arcadia_sound_device::sound_stream_update(sound_stream &stream)
+void arcadia_sound_device::sound_stream_update(sound_stream &stream, std::vector<read_stream_view> const &inputs, std::vector<write_stream_view> &outputs)
 {
-	for (int i = 0; i < stream.samples(); i++)
+	int i;
+	auto &buffer = outputs[0];
+
+	for (i = 0; i < buffer.samples(); i++)
 	{
 		s32 result = 0;
 
@@ -129,7 +132,7 @@ void arcadia_sound_device::sound_stream_update(sound_stream &stream)
 				m_pos = 0;
 			}
 		}
-		stream.put_int(0, i, result, 32768);
+		buffer.put_int(i, result, 32768);
 	}
 }
 

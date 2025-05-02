@@ -300,11 +300,12 @@ void amuzy_state::amuzy(machine_config &config)
 
 	TIMER(config, "scantimer").configure_scanline(FUNC(amuzy_state::scanline), m_screen, 0, 1);
 
-	SPEAKER(config, "speaker", 2).front();
+	SPEAKER(config, "lspeaker").front_left();
+	SPEAKER(config, "rspeaker").front_right();
 
 	OKIM9810(config, m_oki, XTAL(4'096'000));
-	m_oki->add_route(0, "speaker", 1.00, 0);
-	m_oki->add_route(1, "speaker", 1.00, 1);
+	m_oki->add_route(0, "lspeaker", 1.00);
+	m_oki->add_route(1, "rspeaker", 1.00);
 }
 
 static INPUT_PORTS_START( amuzy )

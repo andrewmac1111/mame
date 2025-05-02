@@ -445,8 +445,10 @@ void i8255_device::write_mode0(int port, uint8_t data)
 		// write data to port
 		if (port == PORT_A)
 			m_out_pa_cb((offs_t)0, m_output[port]);
-		else
+		else if (port == PORT_B)
 			m_out_pb_cb((offs_t)0, m_output[port]);
+		else
+			m_out_pc_cb((offs_t)0, m_output[port]);
 	}
 }
 
@@ -461,8 +463,10 @@ void i8255_device::write_mode1(int port, uint8_t data)
 		// write data to port
 		if (port == PORT_A)
 			m_out_pa_cb((offs_t)0, m_output[port]);
-		else
+		else if (port == PORT_B)
 			m_out_pb_cb((offs_t)0, m_output[port]);
+		else
+			m_out_pc_cb((offs_t)0, m_output[port]);
 
 		// set output buffer full flag
 		set_obf(port, 0);

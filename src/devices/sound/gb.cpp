@@ -1307,9 +1307,11 @@ constexpr s32 convert_output(s32 sample)
 //  sound_stream_update - handle a stream update
 //-------------------------------------------------
 
-void gameboy_sound_device::sound_stream_update(sound_stream &stream)
+void gameboy_sound_device::sound_stream_update(sound_stream &stream, std::vector<read_stream_view> const &inputs, std::vector<write_stream_view> &outputs)
 {
-	for (int sampindex = 0; sampindex < stream.samples(); sampindex++)
+	auto &outputl = outputs[0];
+	auto &outputr = outputs[1];
+	for (int sampindex = 0; sampindex < outputl.samples(); sampindex++)
 	{
 		s32 sample;
 		s32 left = 0;
@@ -1360,7 +1362,7 @@ void gameboy_sound_device::sound_stream_update(sound_stream &stream)
 		right *= 1 + m_snd_control.vol_right;
 
 		/* Update the buffers */
-		stream.put_int(0, sampindex, left, 15 * 4 * (1 + 7));
-		stream.put_int(1, sampindex, right, 15 * 4 * (1 + 7));
+		outputl.put_int(sampindex, left, 15 * 4 * (1 + 7));
+		outputr.put_int(sampindex, right, 15 * 4 * (1 + 7));
 	}
 }

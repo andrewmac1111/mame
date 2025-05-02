@@ -125,18 +125,22 @@ void wiping_sound_device::sound_w(offs_t offset, uint8_t data)
 //  sound_stream_update - handle a stream update
 //-------------------------------------------------
 
-void wiping_sound_device::sound_stream_update(sound_stream &stream)
+void wiping_sound_device::sound_stream_update(sound_stream &stream, std::vector<read_stream_view> const &inputs, std::vector<write_stream_view> &outputs)
 {
+	auto &buffer = outputs[0];
 	wp_sound_channel *voice;
 	short *mix;
 	int i;
 
 	/* if no sound, we're done */
 	if (m_sound_enable == 0)
+	{
+		buffer.fill(0);
 		return;
+	}
 
 	/* zap the contents of the mixer buffer */
-	std::fill_n(&m_mixer_buffer[0], stream.samples(), 0);
+	std::fill_n(&m_mixer_buffer[0], buffer.samples(), 0);
 
 	/* loop over each voice and add its contribution */
 	for (voice = m_channel_list; voice < m_last_channel; voice++)
@@ -153,7 +157,7 @@ void wiping_sound_device::sound_stream_update(sound_stream &stream)
 			mix = &m_mixer_buffer[0];
 
 			/* add our contribution */
-			for (i = 0; i < stream.samples(); i++)
+			for (i = 0; i < buffer.samples(); i++)
 			{
 				int offs;
 
@@ -198,6 +202,6 @@ void wiping_sound_device::sound_stream_update(sound_stream &stream)
 
 	/* mix it down */
 	mix = &m_mixer_buffer[0];
-	for (i = 0; i < stream.samples(); i++)
-		stream.put_int(0, i, *mix++, 128 * MAX_VOICES);
+	for (i = 0; i < buffer.samples(); i++)
+		buffer.put_int(i, *mix++, 128 * MAX_VOICES);
 }

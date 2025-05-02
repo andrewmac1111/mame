@@ -2583,7 +2583,7 @@ void viper_state::viper(machine_config &config)
 	NS16550(config, "duart_com:chan0", XTAL(19'660'800));
 	NS16550(config, "duart_com:chan1", XTAL(19'660'800)).out_int_callback().set(FUNC(viper_state::uart_int));
 
-	K056230_VIPER(config, m_lanc);
+	K056230_VIPER(config, m_lanc, 0U);
 	m_lanc->irq_cb().set(FUNC(viper_state::lanc_int));
 
 	VOODOO_3(config, m_voodoo, voodoo_3_device::NOMINAL_CLOCK);
@@ -2605,9 +2605,10 @@ void viper_state::viper(machine_config &config)
 	PALETTE(config, "palette").set_entries(65536);
 
 	/* sound hardware */
-	SPEAKER(config, "speaker", 2).front();
-	DMADAC(config, "dacl").add_route(ALL_OUTPUTS, "speaker", 1.0, 0);
-	DMADAC(config, "dacr").add_route(ALL_OUTPUTS, "speaker", 1.0, 1);
+	SPEAKER(config, "lspeaker").front_left();
+	SPEAKER(config, "rspeaker").front_right();
+	DMADAC(config, "dacl").add_route(ALL_OUTPUTS, "lspeaker", 1.0);
+	DMADAC(config, "dacr").add_route(ALL_OUTPUTS, "rspeaker", 1.0);
 
 	M48T58(config, "m48t58", 0);
 
@@ -2628,10 +2629,12 @@ void viper_state::viper_ppp(machine_config &config)
 void viper_state::viper_fullbody(machine_config &config)
 {
 	viper(config);
-	config.device_remove("speaker");
-	SPEAKER(config, "speaker", 2).front_center(0).rear_center(1);
-	DMADAC(config.replace(), "dacl").add_route(ALL_OUTPUTS, "speaker", 1.0, 0);
-	DMADAC(config.replace(), "dacr").add_route(ALL_OUTPUTS, "speaker", 1.0, 1);
+	config.device_remove("lspeaker");
+	config.device_remove("rspeaker");
+	SPEAKER(config, "front").front_center();
+	SPEAKER(config, "rear").rear_center();
+	DMADAC(config.replace(), "dacl").add_route(ALL_OUTPUTS, "front", 1.0);
+	DMADAC(config.replace(), "dacr").add_route(ALL_OUTPUTS, "rear", 1.0);
 }
 
 void viper_state::viper_fbdongle(machine_config &config)

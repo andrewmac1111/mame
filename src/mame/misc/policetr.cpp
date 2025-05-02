@@ -452,11 +452,12 @@ void policetr_state::policetr(machine_config &config)
 	BT481(config, m_ramdac, 0); // Bt481AKPJ110
 
 	/* sound hardware */
-	SPEAKER(config, m_speaker, 2).front();
+	SPEAKER(config, m_lspeaker).front_left();
+	SPEAKER(config, m_rspeaker).front_right();
 
 	BSMT2000(config, m_bsmt, MASTER_CLOCK/2);
-	m_bsmt->add_route(0, *m_speaker, 1.0, 0);
-	m_bsmt->add_route(1, *m_speaker, 1.0, 1);
+	m_bsmt->add_route(0, *m_lspeaker, 1.0);
+	m_bsmt->add_route(1, *m_rspeaker, 1.0);
 }
 
 void sshooter_state::sshooter(machine_config &config)

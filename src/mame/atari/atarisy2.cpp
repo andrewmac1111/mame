@@ -1224,7 +1224,8 @@ void atarisy2_state::atarisy2(machine_config &config)
 	screen.screen_vblank().set(FUNC(atarisy2_state::vblank_int));
 
 	// sound hardware
-	SPEAKER(config, "speaker", 2).front();
+	SPEAKER(config, "lspeaker").front_left();
+	SPEAKER(config, "rspeaker").front_right();
 
 	GENERIC_LATCH_8(config, m_soundlatch);
 	m_soundlatch->data_pending_callback().set_inputline(m_audiocpu, m6502_device::NMI_LINE);
@@ -1234,20 +1235,20 @@ void atarisy2_state::atarisy2(machine_config &config)
 	GENERIC_LATCH_8(config, m_mainlatch);
 
 	YM2151(config, m_ym2151, SOUND_CLOCK/4);
-	m_ym2151->add_route(0, "speaker", 0.60, 0);
-	m_ym2151->add_route(1, "speaker", 0.60, 1);
+	m_ym2151->add_route(0, "lspeaker", 0.60);
+	m_ym2151->add_route(1, "rspeaker", 0.60);
 
 	POKEY(config, m_pokey[0], SOUND_CLOCK/8);
 	m_pokey[0]->allpot_r().set_ioport("DSW0");
-	m_pokey[0]->add_route(ALL_OUTPUTS, "speaker", 1.35, 0);
+	m_pokey[0]->add_route(ALL_OUTPUTS, "lspeaker", 1.35);
 
 	POKEY(config, m_pokey[1], SOUND_CLOCK/8);
 	m_pokey[1]->allpot_r().set_ioport("DSW1");
-	m_pokey[1]->add_route(ALL_OUTPUTS, "speaker", 1.35, 1);
+	m_pokey[1]->add_route(ALL_OUTPUTS, "rspeaker", 1.35);
 
 	TMS5220C(config, m_tms5220, MASTER_CLOCK/4/4/2);
-	m_tms5220->add_route(ALL_OUTPUTS, "speaker", 0.75, 0);
-	m_tms5220->add_route(ALL_OUTPUTS, "speaker", 0.75, 1);
+	m_tms5220->add_route(ALL_OUTPUTS, "lspeaker", 0.75);
+	m_tms5220->add_route(ALL_OUTPUTS, "rspeaker", 0.75);
 }
 
 

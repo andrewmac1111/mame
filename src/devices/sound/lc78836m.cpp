@@ -88,12 +88,14 @@ void lc78836m_device::device_clock_changed()
 	update_clock();
 }
 
-void lc78836m_device::sound_stream_update(sound_stream &stream)
+void lc78836m_device::sound_stream_update(sound_stream &stream, std::vector<read_stream_view> const &inputs, std::vector<write_stream_view> &outputs)
 {
-	stream.put(0, 0, m_sample_ch1 * m_att / 1024.0);
+	outputs[0].fill(0);
+	outputs[0].put(0, m_sample_ch1 * m_att / 1024.0);
 	m_sample_ch1 = 0;
 
-	stream.put(1, 0, m_sample_ch2 * m_att / 1024.0);
+	outputs[1].fill(0);
+	outputs[1].put(0, m_sample_ch2 * m_att / 1024.0);
 	m_sample_ch2 = 0;
 
 	if (m_mute && m_att > 0)
@@ -127,7 +129,7 @@ void lc78836m_device::bclk_w(int state)
 		m_sample_bit++;
 
 		if (m_sample_bit >= 16) {
-			sound_stream::sample_t sample = m_sample / double(std::numeric_limits<int16_t>::max());
+			stream_buffer::sample_t sample = m_sample / double(std::numeric_limits<int16_t>::max());
 
 			if (m_lrck)
 				m_sample_ch1 = sample;

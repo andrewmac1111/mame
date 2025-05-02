@@ -1259,11 +1259,12 @@ void sp0256_device::set_clock(int clock)
 //  sound_stream_update - handle a stream update
 //-------------------------------------------------
 
-void sp0256_device::sound_stream_update(sound_stream &stream)
+void sp0256_device::sound_stream_update(sound_stream &stream, std::vector<read_stream_view> const &inputs, std::vector<write_stream_view> &outputs)
 {
+	auto &output = outputs[0];
 	int output_index = 0;
 
-	while (output_index < stream.samples())
+	while (output_index < output.samples())
 	{
 		/* ---------------------------------------------------------------- */
 		/*  First, drain as much of our scratch buffer as we can into the   */
@@ -1271,20 +1272,20 @@ void sp0256_device::sound_stream_update(sound_stream &stream)
 		/* ---------------------------------------------------------------- */
 		while (m_sc_tail != m_sc_head)
 		{
-			stream.put_int(0, output_index++, m_scratch[m_sc_tail++ & SCBUF_MASK], 32768);
+			output.put_int(output_index++, m_scratch[m_sc_tail++ & SCBUF_MASK], 32768);
 			m_sc_tail &= SCBUF_MASK;
 
-			if (output_index >= stream.samples())
+			if (output_index >= output.samples())
 				break;
 		}
 
 		/* ---------------------------------------------------------------- */
 		/*  If output outputs is full, then we're done.                      */
 		/* ---------------------------------------------------------------- */
-		if (output_index > stream.samples())
+		if (output_index > output.samples())
 			break;
 
-		int length = stream.samples() - output_index;
+		int length = output.samples() - output_index;
 
 		/* ---------------------------------------------------------------- */
 		/*  Process the current set of filter coefficients as long as the   */

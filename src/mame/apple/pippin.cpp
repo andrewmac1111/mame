@@ -189,9 +189,10 @@ void pippin_state::pippin(machine_config &config)
 	grandcentral.codec_r_callback().set(awacs, FUNC(awacs_macrisc_device::read_macrisc));
 	grandcentral.codec_w_callback().set(awacs, FUNC(awacs_macrisc_device::write_macrisc));
 
-	SPEAKER(config, "speaker", 2).front();
-	awacs.add_route(0, "speaker", 1.0, 0);
-	awacs.add_route(1, "speaker", 1.0, 1);
+	SPEAKER(config, "lspeaker").front_left();
+	SPEAKER(config, "rspeaker").front_right();
+	awacs.add_route(0, "lspeaker", 1.0);
+	awacs.add_route(1, "rspeaker", 1.0);
 
 	MACADB(config, m_macadb, 15.6672_MHz_XTAL);
 

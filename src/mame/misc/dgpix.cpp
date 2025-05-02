@@ -508,11 +508,12 @@ void dgpix_state::dgpix_base(machine_config &config)
 
 	PALETTE(config, "palette", palette_device::BGR_555);
 
-	SPEAKER(config, "speaker", 2).front();
+	SPEAKER(config, "lspeaker").front_left();
+	SPEAKER(config, "rspeaker").front_right();
 
 	KS0164(config, m_sound, 16.9344_MHz_XTAL);
-	m_sound->add_route(0, "speaker", 1.0, 0);
-	m_sound->add_route(1, "speaker", 1.0, 1);
+	m_sound->add_route(0, "lspeaker", 1.0);
+	m_sound->add_route(1, "rspeaker", 1.0);
 
 	INTEL_28F320J5(config, m_flash[6]);
 	INTEL_28F320J5(config, m_flash[7]);

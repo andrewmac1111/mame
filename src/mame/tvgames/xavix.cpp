@@ -1779,14 +1779,15 @@ void xavix_state::xavix(machine_config &config)
 	/* sound hardware */
 
 	//SPEAKER(config, "mono").front_center();
-	SPEAKER(config, "speaker", 2).front();
+	SPEAKER(config, "lspeaker").front_left();
+	SPEAKER(config, "rspeaker").front_right();
 
 	XAVIX_SOUND(config, m_sound, MAIN_CLOCK);
 	m_sound->read_regs_callback().set(FUNC(xavix_state::sound_regram_read_cb));
 	m_sound->read_samples_callback().set(FUNC(xavix_state::sample_read));
 	//m_sound->add_route(ALL_OUTPUTS, "mono", 1.0);
-	m_sound->add_route(0, "speaker", 1.0, 0);
-	m_sound->add_route(1, "speaker", 1.0, 1);
+	m_sound->add_route(0, "lspeaker", 1.0);
+	m_sound->add_route(1, "rspeaker", 1.0);
 }
 
 void xavix_state::xavix_4mb(machine_config &config)

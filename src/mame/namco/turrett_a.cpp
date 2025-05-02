@@ -81,8 +81,12 @@ void turrett_device::device_reset()
 //  sound_stream_update - update sound stream
 //-------------------------------------------------
 
-void turrett_device::sound_stream_update(sound_stream &stream)
+void turrett_device::sound_stream_update(sound_stream &stream, std::vector<read_stream_view> const &inputs, std::vector<write_stream_view> &outputs)
 {
+	// Silence the buffers
+	outputs[0].fill(0);
+	outputs[1].fill(0);
+
 	for (int ch = 0; ch < SOUND_CHANNELS; ++ch)
 	{
 		if (m_channels[ch].m_playing)
@@ -97,7 +101,7 @@ void turrett_device::sound_stream_update(sound_stream &stream)
 			// Channels 30 and 31 expect interleaved stereo samples
 			uint32_t incr = (ch >= 30) ? 2 : 1;
 
-			for (int s = 0; s < stream.samples(); ++s)
+			for (int s = 0; s < outputs[0].samples(); ++s)
 			{
 				int16_t sample = m_cache.read_word(addr << 1);
 
@@ -109,8 +113,8 @@ void turrett_device::sound_stream_update(sound_stream &stream)
 
 				addr += incr;
 
-				stream.add_int(0, s, (sample * lvol) >> 17, 32768);
-				stream.add_int(1, s, (sample * rvol) >> 17, 32768);
+				outputs[0].add_int(s, (sample * lvol) >> 17, 32768);
+				outputs[1].add_int(s, (sample * rvol) >> 17, 32768);
 			}
 		}
 	}

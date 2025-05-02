@@ -1281,7 +1281,8 @@ void vigilant_state::vigilant(machine_config &config)
 	PALETTE(config, m_palette).set_entries(512+32); // 512 real palette, 32 virtual palette
 
 	// sound hardware
-	SPEAKER(config, "speaker", 2).front();
+	SPEAKER(config, "lspeaker").front_left();
+	SPEAKER(config, "rspeaker").front_right();
 
 	generic_latch_8_device &soundlatch(GENERIC_LATCH_8(config, "soundlatch"));
 	soundlatch.data_pending_callback().set("soundirq", FUNC(rst_neg_buffer_device::rst18_w));
@@ -1294,12 +1295,12 @@ void vigilant_state::vigilant(machine_config &config)
 
 	ym2151_device &ymsnd(YM2151(config, "ymsnd", 3.579545_MHz_XTAL));
 	ymsnd.irq_handler().set("soundirq", FUNC(rst_neg_buffer_device::rst28_w));
-	ymsnd.add_route(0, "speaker", 0.28, 0);
-	ymsnd.add_route(1, "speaker", 0.28, 1);
+	ymsnd.add_route(0, "lspeaker", 0.28);
+	ymsnd.add_route(1, "rspeaker", 0.28);
 
 	dac_8bit_r2r_device &dac(DAC_8BIT_R2R(config, "dac", 0)); // unknown DAC
-	dac.add_route(ALL_OUTPUTS, "speaker", 0.5, 0);
-	dac.add_route(ALL_OUTPUTS, "speaker", 0.5, 1);
+	dac.add_route(ALL_OUTPUTS, "lspeaker", 0.5);
+	dac.add_route(ALL_OUTPUTS, "rspeaker", 0.5);
 }
 
 void vigilant_state::buccanrs(machine_config &config)
@@ -1328,7 +1329,8 @@ void vigilant_state::buccanrs(machine_config &config)
 	PALETTE(config, m_palette).set_entries(512+32); // 512 real palette, 32 virtual palette
 
 	// sound hardware
-	SPEAKER(config, "speaker", 2).front();
+	SPEAKER(config, "lspeaker").front_left();
+	SPEAKER(config, "rspeaker").front_right();
 
 	generic_latch_8_device &soundlatch(GENERIC_LATCH_8(config, "soundlatch"));
 	soundlatch.data_pending_callback().set("soundirq", FUNC(rst_neg_buffer_device::rst18_w));
@@ -1341,28 +1343,28 @@ void vigilant_state::buccanrs(machine_config &config)
 
 	ym2203_device &ym1(YM2203(config, "ym1", 18.432_MHz_XTAL / 6));
 	ym1.irq_handler().set("soundirq", FUNC(rst_neg_buffer_device::rst28_w));
-	ym1.add_route(0, "speaker", 0.35, 0);
-	ym1.add_route(0, "speaker", 0.35, 1);
-	ym1.add_route(1, "speaker", 0.35, 0);
-	ym1.add_route(1, "speaker", 0.35, 1);
-	ym1.add_route(2, "speaker", 0.35, 0);
-	ym1.add_route(2, "speaker", 0.35, 1);
-	ym1.add_route(3, "speaker", 0.50, 0);
-	ym1.add_route(3, "speaker", 0.50, 1);
+	ym1.add_route(0, "lspeaker", 0.35);
+	ym1.add_route(0, "rspeaker", 0.35);
+	ym1.add_route(1, "lspeaker", 0.35);
+	ym1.add_route(1, "rspeaker", 0.35);
+	ym1.add_route(2, "lspeaker", 0.35);
+	ym1.add_route(2, "rspeaker", 0.35);
+	ym1.add_route(3, "lspeaker", 0.50);
+	ym1.add_route(3, "rspeaker", 0.50);
 
 	ym2203_device &ym2(YM2203(config, "ym2", 18.432_MHz_XTAL / 6));
-	ym2.add_route(0, "speaker", 0.35, 0);
-	ym2.add_route(0, "speaker", 0.35, 1);
-	ym2.add_route(1, "speaker", 0.35, 0);
-	ym2.add_route(1, "speaker", 0.35, 1);
-	ym2.add_route(2, "speaker", 0.35, 0);
-	ym2.add_route(2, "speaker", 0.35, 1);
-	ym2.add_route(3, "speaker", 0.50, 0);
-	ym2.add_route(3, "speaker", 0.50, 1);
+	ym2.add_route(0, "lspeaker", 0.35);
+	ym2.add_route(0, "rspeaker", 0.35);
+	ym2.add_route(1, "lspeaker", 0.35);
+	ym2.add_route(1, "rspeaker", 0.35);
+	ym2.add_route(2, "lspeaker", 0.35);
+	ym2.add_route(2, "rspeaker", 0.35);
+	ym2.add_route(3, "lspeaker", 0.50);
+	ym2.add_route(3, "rspeaker", 0.50);
 
 	dac_8bit_r2r_device &dac(DAC_8BIT_R2R(config, "dac", 0)); // unknown DAC
-	dac.add_route(ALL_OUTPUTS, "speaker", 0.35, 0);
-	dac.add_route(ALL_OUTPUTS, "speaker", 0.35, 1);
+	dac.add_route(ALL_OUTPUTS, "lspeaker", 0.35);
+	dac.add_route(ALL_OUTPUTS, "rspeaker", 0.35);
 }
 
 void captainx_state::captainx(machine_config &config)
@@ -1404,7 +1406,8 @@ void vigilant_state::kikcubic(machine_config &config)
 	PALETTE(config, m_palette).set_entries(256);
 
 	// sound hardware
-	SPEAKER(config, "speaker", 2).front();
+	SPEAKER(config, "lspeaker").front_left();
+	SPEAKER(config, "rspeaker").front_right();
 
 	generic_latch_8_device &soundlatch(GENERIC_LATCH_8(config, "soundlatch"));
 	soundlatch.data_pending_callback().set("soundirq", FUNC(rst_neg_buffer_device::rst18_w));
@@ -1417,12 +1420,12 @@ void vigilant_state::kikcubic(machine_config &config)
 
 	ym2151_device &ymsnd(YM2151(config, "ymsnd", 3.579545_MHz_XTAL));
 	ymsnd.irq_handler().set("soundirq", FUNC(rst_neg_buffer_device::rst28_w));
-	ymsnd.add_route(0, "speaker", 0.28, 0);
-	ymsnd.add_route(1, "speaker", 0.28, 1);
+	ymsnd.add_route(0, "lspeaker", 0.28);
+	ymsnd.add_route(1, "rspeaker", 0.28);
 
 	dac_8bit_r2r_device &dac(DAC_8BIT_R2R(config, "dac", 0)); // unknown DAC
-	dac.add_route(ALL_OUTPUTS, "speaker", 0.5, 0);
-	dac.add_route(ALL_OUTPUTS, "speaker", 0.5, 1);
+	dac.add_route(ALL_OUTPUTS, "lspeaker", 0.5);
+	dac.add_route(ALL_OUTPUTS, "rspeaker", 0.5);
 }
 
 
@@ -1452,7 +1455,8 @@ void vigilant_state::bowmen(machine_config &config)
 	PALETTE(config, m_palette).set_entries(512 + 32); // 512 real palette, 32 virtual palette
 
 	// sound hardware
-	SPEAKER(config, "speaker", 2).front();
+	SPEAKER(config, "lspeaker").front_left();
+	SPEAKER(config, "rspeaker").front_right();
 
 	generic_latch_8_device &soundlatch(GENERIC_LATCH_8(config, "soundlatch"));
 	soundlatch.data_pending_callback().set("soundirq", FUNC(rst_neg_buffer_device::rst18_w));
@@ -1465,28 +1469,28 @@ void vigilant_state::bowmen(machine_config &config)
 
 	ym2203_device &ym1(YM2203(config, "ym1", 18_MHz_XTAL / 6));
 	ym1.irq_handler().set("soundirq", FUNC(rst_neg_buffer_device::rst28_w));
-	ym1.add_route(0, "speaker", 0.35, 0);
-	ym1.add_route(0, "speaker", 0.35, 1);
-	ym1.add_route(1, "speaker", 0.35, 0);
-	ym1.add_route(1, "speaker", 0.35, 1);
-	ym1.add_route(2, "speaker", 0.35, 0);
-	ym1.add_route(2, "speaker", 0.35, 1);
-	ym1.add_route(3, "speaker", 0.50, 0);
-	ym1.add_route(3, "speaker", 0.50, 1);
+	ym1.add_route(0, "lspeaker", 0.35);
+	ym1.add_route(0, "rspeaker", 0.35);
+	ym1.add_route(1, "lspeaker", 0.35);
+	ym1.add_route(1, "rspeaker", 0.35);
+	ym1.add_route(2, "lspeaker", 0.35);
+	ym1.add_route(2, "rspeaker", 0.35);
+	ym1.add_route(3, "lspeaker", 0.50);
+	ym1.add_route(3, "rspeaker", 0.50);
 
 	ym2203_device &ym2(YM2203(config, "ym2", 18_MHz_XTAL / 6));
-	ym2.add_route(0, "speaker", 0.35, 0);
-	ym2.add_route(0, "speaker", 0.35, 1);
-	ym2.add_route(1, "speaker", 0.35, 0);
-	ym2.add_route(1, "speaker", 0.35, 1);
-	ym2.add_route(2, "speaker", 0.35, 0);
-	ym2.add_route(2, "speaker", 0.35, 1);
-	ym2.add_route(3, "speaker", 0.50, 0);
-	ym2.add_route(3, "speaker", 0.50, 1);
+	ym2.add_route(0, "lspeaker", 0.35);
+	ym2.add_route(0, "rspeaker", 0.35);
+	ym2.add_route(1, "lspeaker", 0.35);
+	ym2.add_route(1, "rspeaker", 0.35);
+	ym2.add_route(2, "lspeaker", 0.35);
+	ym2.add_route(2, "rspeaker", 0.35);
+	ym2.add_route(3, "lspeaker", 0.50);
+	ym2.add_route(3, "rspeaker", 0.50);
 
 	dac_8bit_r2r_device &dac(DAC_8BIT_R2R(config, "dac", 0)); // unknown DAC
-	dac.add_route(ALL_OUTPUTS, "speaker", 0.35, 0);
-	dac.add_route(ALL_OUTPUTS, "speaker", 0.35, 1);
+	dac.add_route(ALL_OUTPUTS, "lspeaker", 0.35);
+	dac.add_route(ALL_OUTPUTS, "rspeaker", 0.35);
 }
 
 

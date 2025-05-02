@@ -371,9 +371,9 @@ u32 upd933_device::env_rate(u8 data) const
 }
 
 /**************************************************************************/
-void upd933_device::sound_stream_update(sound_stream &stream)
+void upd933_device::sound_stream_update(sound_stream &stream, std::vector<read_stream_view> const &inputs, std::vector<write_stream_view> &outputs)
 {
-	for (int i = 0; i < stream.samples(); i++)
+	for (int i = 0; i < outputs[0].samples(); i++)
 	{
 		s32 sample = 0;
 
@@ -385,7 +385,7 @@ void upd933_device::sound_stream_update(sound_stream &stream)
 		for (int j : voice_map)
 			sample += update(j);
 
-		stream.put_int_clamp(0, i, sample, 1 << 15);
+		outputs[0].put_int_clamp(i, sample, 1 << 15);
 		m_sample_count++;
 	}
 }

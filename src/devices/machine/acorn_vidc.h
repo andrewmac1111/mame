@@ -90,7 +90,8 @@ protected:
 	required_device_array<dac_16bit_r2r_twos_complement_device, 8> m_dac;
 	int m_dac_type;
 
-	required_device<speaker_device> m_speaker;
+	required_device<speaker_device> m_lspeaker;
+	required_device<speaker_device> m_rspeaker;
 
 	virtual void refresh_stereo_image(u8 channel);
 	const int m_sound_max_channels = 8;

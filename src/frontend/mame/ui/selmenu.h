@@ -88,7 +88,6 @@ protected:
 		system_flags &operator=(system_flags &&) = default;
 
 		::machine_flags::type machine_flags() const { return m_machine_flags; }
-		device_t::flags_type emulation_flags() const { return m_emulation_flags; }
 		device_t::feature_type unemulated_features() const { return m_unemulated_features; }
 		device_t::feature_type imperfect_features() const { return m_imperfect_features; }
 		bool has_keyboard() const { return m_has_keyboard; }
@@ -97,7 +96,6 @@ protected:
 
 	private:
 		::machine_flags::type   m_machine_flags;
-		device_t::flags_type    m_emulation_flags;
 		device_t::feature_type  m_unemulated_features;
 		device_t::feature_type  m_imperfect_features;
 		bool                    m_has_keyboard;

@@ -103,7 +103,7 @@ void dac76_device::device_reset()
 //  our sound stream
 //-------------------------------------------------
 
-void dac76_device::sound_stream_update(sound_stream &stream)
+void dac76_device::sound_stream_update(sound_stream &stream, std::vector<read_stream_view> const &inputs, std::vector<write_stream_view> &outputs)
 {
 	// get current output level
 	int step_size = (2 << m_chord);
@@ -113,22 +113,24 @@ void dac76_device::sound_stream_update(sound_stream &stream)
 	vout *= (m_sb ? +1 : -1);
 
 	// range is 0-8031, normalize to 0-1 range
-	sound_stream::sample_t y = sound_stream::sample_t(vout) * (1.0 / 8031.0);
+	stream_buffer::sample_t y = stream_buffer::sample_t(vout) * (1.0 / 8031.0);
 
 	if (m_voltage_output)
 	{
-		constexpr float FULL_SCALE_MULT = 3.8F;  // From datasheet.
+		static constexpr const float FULL_SCALE_MULT = 3.8F;  // From datasheet.
 		y *= ((y >= 0) ? m_r_pos : m_r_neg) * FULL_SCALE_MULT;
 	}
 
+	write_stream_view &out = outputs[0];
 	if (m_streaming_iref)
 	{
-		const int n = stream.samples();
+		const read_stream_view &iref = inputs[0];
+		const int n = out.samples();
 		for (int i = 0; i < n; ++i)
-			stream.put(0, i, stream.get(0, i) * y);
+			out.put(i, iref.get(i) * y);
 	}
 	else
 	{
-		stream.fill(0, m_fixed_iref * y);
+		out.fill(m_fixed_iref * y);
 	}
 }

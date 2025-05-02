@@ -4,7 +4,6 @@
 #include "keyboard.h"
 
 namespace {
-
 INPUT_PORTS_START(serial_keyboard)
 	PORT_INCLUDE(generic_keyboard)
 
@@ -13,7 +12,6 @@ INPUT_PORTS_START(serial_keyboard)
 	PORT_RS232_PARITY("RS232_PARITY", RS232_PARITY_NONE, "Parity", serial_keyboard_device, update_serial)
 	PORT_RS232_STOPBITS("RS232_STOPBITS", RS232_STOPBITS_1, "Stop Bits", serial_keyboard_device, update_serial)
 INPUT_PORTS_END
-
 } // anonymous namespace
 
 serial_keyboard_device::serial_keyboard_device(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock)

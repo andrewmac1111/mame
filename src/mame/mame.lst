@@ -16229,11 +16229,6 @@ fp1100
 @source:casio/fp6000.cpp
 fp6000
 
-@source:casio/fz1.cpp
-fz1
-fz10m
-fz20m
-
 @source:casio/ht6000.cpp
 ht6000
 
@@ -20548,8 +20543,7 @@ mgcsb
 mgdh
 mgdha
 sdmg2
-sdmg2754ca
-sdmg2754cb
+sdmg2a
 sdmg2p
 slqz2
 slqz2a
@@ -20594,8 +20588,7 @@ fruitpar
 fruitpar206us
 gonefsh2
 jking02
-klxyj102cn
-klxyj104cn
+klxyj
 lhdmg
 lhdmgp
 lhdmgp200c3m
@@ -42627,9 +42620,6 @@ bert
 @source:skeleton/biorhythm.cpp
 biorhthm
 
-@source:skeleton/biorhythm_fp.cpp
-biortmfp
-
 @source:skeleton/bitgraph.cpp
 bitgrpha
 bitgrphb
@@ -46401,7 +46391,6 @@ ablkickb
 abltenni
 anpantv
 ban_krkk
-ban_tam2
 comil
 ddr33v
 decathln
@@ -46410,7 +46399,6 @@ dmbtjunc
 doraglob
 doraglobf
 doraglobg
-doraglobuk
 doraphon
 doraphonf
 doyousud

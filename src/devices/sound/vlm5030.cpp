@@ -498,18 +498,19 @@ void vlm5030_device::st(int state)
 //  sound_stream_update - handle a stream update
 //-------------------------------------------------
 
-void vlm5030_device::sound_stream_update(sound_stream &stream)
+void vlm5030_device::sound_stream_update(sound_stream &stream, std::vector<read_stream_view> const &inputs, std::vector<write_stream_view> &outputs)
 {
 	int interp_effect;
 	int i;
 	int u[11];
+	auto &buffer = outputs[0];
 
 	/* running */
 	int sampindex = 0;
 	if (m_phase == PH_RUN || m_phase == PH_STOP)
 	{
 		/* playing speech */
-		for ( ; sampindex < stream.samples(); sampindex++)
+		for ( ; sampindex < buffer.samples(); sampindex++)
 		{
 			int current_val;
 
@@ -602,7 +603,7 @@ void vlm5030_device::sound_stream_update(sound_stream &stream)
 			m_x[0] = u[0];
 
 			/* clipping, buffering */
-			stream.put_int_clamp(0, sampindex, u[0], 512);
+			buffer.put_int_clamp(sampindex, u[0], 512);
 
 			/* sample count */
 			m_sample_count--;
@@ -621,7 +622,7 @@ phase_stop:
 	switch (m_phase)
 	{
 	case PH_SETUP:
-		if (m_sample_count <= stream.samples())
+		if (m_sample_count <= buffer.samples())
 		{
 			m_sample_count = 0;
 			/* logerror("VLM5030 BSY=H\n"); */
@@ -630,11 +631,11 @@ phase_stop:
 		}
 		else
 		{
-			m_sample_count -= stream.samples();
+			m_sample_count -= buffer.samples();
 		}
 		break;
 	case PH_END:
-		if (m_sample_count <= stream.samples())
+		if (m_sample_count <= buffer.samples())
 		{
 			m_sample_count = 0;
 			/* logerror("VLM5030 BSY=L\n"); */
@@ -643,7 +644,10 @@ phase_stop:
 		}
 		else
 		{
-			m_sample_count -= stream.samples();
+			m_sample_count -= buffer.samples();
 		}
 	}
+
+	/* silent buffering */
+	buffer.fill(0, sampindex);
 }

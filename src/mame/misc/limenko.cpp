@@ -712,7 +712,8 @@ void limenko_state::limenko(machine_config &config)
 	PALETTE(config, m_palette).set_format(palette_device::xBGR_555, 0x1000);
 
 	/* sound hardware */
-	SPEAKER(config, "speaker", 2).front();
+	SPEAKER(config, "lspeaker").front_left();
+	SPEAKER(config, "rspeaker").front_right();
 
 	GENERIC_LATCH_8(config, m_soundlatch);
 	m_soundlatch->data_pending_callback().set(m_qs1000, FUNC(qs1000_device::set_irq));
@@ -724,8 +725,8 @@ void limenko_state::limenko(machine_config &config)
 	m_qs1000->p1_out().set(FUNC(limenko_state::qs1000_p1_w));
 	m_qs1000->p2_out().set(FUNC(limenko_state::qs1000_p2_w));
 	m_qs1000->p3_out().set(FUNC(limenko_state::qs1000_p3_w));
-	m_qs1000->add_route(0, "speaker", 1.0, 0);
-	m_qs1000->add_route(1, "speaker", 1.0, 1);
+	m_qs1000->add_route(0, "lspeaker", 1.0);
+	m_qs1000->add_route(1, "rspeaker", 1.0);
 }
 
 void limenko_state::spotty(machine_config &config)

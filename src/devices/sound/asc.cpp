@@ -123,14 +123,20 @@ TIMER_CALLBACK_MEMBER(asc_device::delayed_stream_update)
 //  our sound stream
 //-------------------------------------------------
 
-void asc_device::sound_stream_update(sound_stream &stream)
+void asc_device::sound_stream_update(sound_stream &stream, std::vector<read_stream_view> const &inputs, std::vector<write_stream_view> &outputs)
 {
 	int i, ch;
 	static uint32_t wtoffs[2] = { 0, 0x200 };
 
+	auto &outL = outputs[0];
+	auto &outR = outputs[1];
+
 	switch (m_regs[R_MODE-0x800] & 3)
 	{
 		case 0: // chip off
+			outL.fill(0);
+			outR.fill(0);
+
 			// IIvx/IIvi bootrom indicates VASP updates this flag even when the chip is off
 			if (m_chip_type == asc_type::VASP)
 			{
@@ -148,7 +154,7 @@ void asc_device::sound_stream_update(sound_stream &stream)
 
 		case 1: // FIFO mode
 		{
-			for (i = 0; i < stream.samples(); i++)
+			for (i = 0; i < outL.samples(); i++)
 			{
 				int8_t smpll, smplr;
 
@@ -251,15 +257,15 @@ void asc_device::sound_stream_update(sound_stream &stream)
 						break;
 				}
 
-				stream.put_int(0, i, smpll, 32768 / 64);
-				stream.put_int(1, i, smplr, 32768 / 64);
+				outL.put_int(i, smpll, 32768 / 64);
+				outR.put_int(i, smplr, 32768 / 64);
 			}
 			break;
 		}
 
 		case 2: // wavetable mode
 		{
-			for (i = 0; i < stream.samples(); i++)
+			for (i = 0; i < outL.samples(); i++)
 			{
 				int32_t mixL, mixR;
 				int8_t smpl;
@@ -285,8 +291,8 @@ void asc_device::sound_stream_update(sound_stream &stream)
 					mixR += smpl*256;
 				}
 
-				stream.put_int(0, i, mixL, 32768 * 4);
-				stream.put_int(1, i, mixR, 32768 * 4);
+				outL.put_int(i, mixL, 32768 * 4);
+				outR.put_int(i, mixR, 32768 * 4);
 			}
 			break;
 		}

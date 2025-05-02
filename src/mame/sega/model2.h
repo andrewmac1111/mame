@@ -11,7 +11,6 @@
 #include "m2comm.h"
 #include "segabill.h"
 #include "segaic24.h"
-
 #include "segam1audio.h"
 
 #include "cpu/i960/i960.h"
@@ -113,10 +112,10 @@ protected:
 	optional_shared_ptr<u16> m_soundram;
 
 	required_device<i960_cpu_device> m_maincpu;
-	optional_device<dsbz80_device> m_dsbz80;    // Z80-based MPEG Digital Sound Board
+	optional_device<dsbz80_device> m_dsbz80;        // Z80-based MPEG Digital Sound Board
 	optional_device<segam1audio_device> m_m1audio;  // Model 1 standard sound board
 	required_device<i8251_device> m_uart;
-	optional_device<m2comm_device> m_m2comm;        // Model 2 communication board
+	optional_device<sega_m2comm_device> m_m2comm;   // Model 2 communication board
 	optional_device<cpu_device> m_audiocpu;
 	required_device<generic_fifo_u32_device> m_copro_fifo_in;
 	required_device<generic_fifo_u32_device> m_copro_fifo_out;
@@ -768,7 +767,7 @@ struct model2_state::triangle
 	u8              luma = 0;
 	int16_t         viewport[4] = { 0, 0, 0, 0 };
 	int16_t         center[2] = { 0, 0 };
-	u8              window = 0;
+	u8				window = 0;
 };
 
 struct model2_state::quad_m2
@@ -823,8 +822,8 @@ struct model2_state::raster_state
 	u16             max_z = 0;                      // Maximum sortable Z value
 	u16             texture_ram[0x10000];           // Texture RAM pointer
 	u8              log_ram[0x40000];               // Log RAM pointer
-	u8              cur_window = 0;                 // Current window
-	plane           clip_plane[4][4];               // Polygon clipping planes
+	u8				cur_window = 0;					// Current window
+ 	plane			clip_plane[4][4];				// Polygon clipping planes
 };
 
 /*******************************************

@@ -295,11 +295,12 @@ void mpc3000_state::mpc3000(machine_config &config)
 			spc.out_dreq_callback().set(m_maincpu, FUNC(v53a_device::dreq_w<0>));
 		});
 
-	SPEAKER(config, "speaker", 2).front();
+	SPEAKER(config, "lspeaker").front_left();
+	SPEAKER(config, "rspeaker").front_right();
 
 	L7A1045(config, m_dsp, 16_MHz_XTAL);
-	m_dsp->add_route(0, "speaker", 1.0, 0);
-	m_dsp->add_route(1, "speaker", 1.0, 1);
+	m_dsp->add_route(0, "lspeaker", 1.0);
+	m_dsp->add_route(1, "rspeaker", 1.0);
 }
 
 static INPUT_PORTS_START( mpc3000 )

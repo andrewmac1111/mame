@@ -454,10 +454,12 @@ void usb_sound_device::env_w(int which, u8 offset, u8 data)
 //  sound_stream_update - handle a stream update
 //-------------------------------------------------
 
-void usb_sound_device::sound_stream_update(sound_stream &stream)
+void usb_sound_device::sound_stream_update(sound_stream &stream, std::vector<read_stream_view> const &inputs, std::vector<write_stream_view> &outputs)
 {
+	auto &dest = outputs[0];
+
 	// iterate over samples
-	for (int sampindex = 0; sampindex < stream.samples(); sampindex++)
+	for (int sampindex = 0; sampindex < dest.samples(); sampindex++)
 	{
 		/*----------------
 		    Noise Source
@@ -588,7 +590,7 @@ void usb_sound_device::sound_stream_update(sound_stream &stream)
 		  WEIGHT
 
 		*/
-		stream.put(0, sampindex, 0.1 * m_final_filter.step_cr(sample));
+		dest.put(sampindex, 0.1 * m_final_filter.step_cr(sample));
 	}
 }
 

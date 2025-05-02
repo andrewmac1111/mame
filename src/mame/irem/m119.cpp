@@ -114,11 +114,12 @@ void m119_state::m119(machine_config &config)
 	// TODO: UPD94244-210 VDP
 
 	// sound hardware
-	SPEAKER(config, "speaker", 2).front();
+	SPEAKER(config, "lspeaker").front_left();
+	SPEAKER(config, "rspeaker").front_right();
 
 	ymz280b_device &ymz(YMZ280B(config, "ymz", 16'934'400)); // internal?
-	ymz.add_route(0, "speaker", 1.0, 0);
-	ymz.add_route(1, "speaker", 1.0, 1);
+	ymz.add_route(0, "lspeaker", 1.0);
+	ymz.add_route(1, "rspeaker", 1.0);
 }
 
 

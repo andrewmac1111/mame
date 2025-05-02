@@ -471,11 +471,12 @@ void orbit_state::orbit(machine_config &config)
 	PALETTE(config, m_palette, palette_device::MONOCHROME);
 
 	// sound hardware
-	SPEAKER(config, "speaker", 2).front();
+	SPEAKER(config, "lspeaker").front_left();
+	SPEAKER(config, "rspeaker").front_right();
 
 	DISCRETE(config, m_discrete, orbit_discrete);
-	m_discrete->add_route(0, "speaker", 1.0, 0);
-	m_discrete->add_route(1, "speaker", 1.0, 1);
+	m_discrete->add_route(0, "lspeaker", 1.0);
+	m_discrete->add_route(1, "rspeaker", 1.0);
 }
 
 

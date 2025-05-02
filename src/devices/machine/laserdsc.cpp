@@ -392,7 +392,7 @@ TIMER_CALLBACK_MEMBER(laserdisc_device::fetch_vbi_data)
 //  laserdiscs
 //-------------------------------------------------
 
-void laserdisc_device::sound_stream_update(sound_stream &stream)
+void laserdisc_device::sound_stream_update(sound_stream &stream, std::vector<read_stream_view> const &inputs, std::vector<write_stream_view> &outputs)
 {
 	// compute AND values based on the squelch
 	int16_t leftand = (m_audiosquelch & 1) ? 0x0000 : 0xffff;
@@ -403,7 +403,17 @@ void laserdisc_device::sound_stream_update(sound_stream &stream)
 	if (samples_avail < 0)
 		samples_avail += m_audiobufsize;
 
-	if (samples_avail >= stream.samples())
+	// if no attached ld, just clear the buffers
+	auto &dst0 = outputs[0];
+	auto &dst1 = outputs[1];
+	if (samples_avail < outputs[0].samples())
+	{
+		dst0.fill(0);
+		dst1.fill(0);
+	}
+
+	// otherwise, stream from our buffer
+	else
 	{
 		int16_t *buffer0 = &m_audiobuffer[0][0];
 		int16_t *buffer1 = &m_audiobuffer[1][0];
@@ -411,10 +421,10 @@ void laserdisc_device::sound_stream_update(sound_stream &stream)
 
 		// copy samples, clearing behind us as we go
 		int sampindex;
-		for (sampindex = 0; sampout != m_audiobufin && sampindex < stream.samples(); sampindex++)
+		for (sampindex = 0; sampout != m_audiobufin && sampindex < outputs[0].samples(); sampindex++)
 		{
-			stream.put_int(0, sampindex, buffer0[sampout] & leftand, 32768);
-			stream.put_int(1, sampindex, buffer1[sampout] & rightand, 32768);
+			dst0.put_int(sampindex, buffer0[sampout] & leftand, 32768);
+			dst1.put_int(sampindex, buffer1[sampout] & rightand, 32768);
 			buffer0[sampout] = 0;
 			buffer1[sampout] = 0;
 			sampout++;
@@ -424,16 +434,16 @@ void laserdisc_device::sound_stream_update(sound_stream &stream)
 		m_audiobufout = sampout;
 
 		// clear out the rest of the buffer
-		if (sampindex < stream.samples())
+		if (sampindex < outputs[0].samples())
 		{
 			sampout = (m_audiobufout == 0) ? m_audiobufsize - 1 : m_audiobufout - 1;
 			s32 fill0 = buffer0[sampout] & leftand;
 			s32 fill1 = buffer1[sampout] & rightand;
 
-			for ( ; sampindex < stream.samples(); sampindex++)
+			for ( ; sampindex < outputs[0].samples(); sampindex++)
 			{
-				stream.put_int(0, sampindex, fill0, 32768);
-				stream.put_int(1, sampindex, fill1, 32768);
+				dst0.put_int(sampindex, fill0, 32768);
+				dst1.put_int(sampindex, fill1, 32768);
 			}
 		}
 	}

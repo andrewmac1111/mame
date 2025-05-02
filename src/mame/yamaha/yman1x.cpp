@@ -62,7 +62,8 @@ void an1x_state::an1x(machine_config &config)
 
 	MULCD(config, "lcd"); // LC7985ND (back-lit)
 
-	SPEAKER(config, "speaker", 2).front();
+	SPEAKER(config, "lspeaker").front_left();
+	SPEAKER(config, "rspeaker").front_right();
 
 	MEG(config, m_meg, 11.2896_MHz_XTAL);
 }

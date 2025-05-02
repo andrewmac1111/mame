@@ -49,14 +49,17 @@ void tms3615_device::device_start()
 //  sound_stream_update - handle a stream update
 //-------------------------------------------------
 
-void tms3615_device::sound_stream_update(sound_stream &stream)
+void tms3615_device::sound_stream_update(sound_stream &stream, std::vector<read_stream_view> const &inputs, std::vector<write_stream_view> &outputs)
 {
-	int samplerate = stream.sample_rate();
+	auto &buffer8 = outputs[FOOTAGE_8];
+	auto &buffer16 = outputs[FOOTAGE_16];
 
-	constexpr sound_stream::sample_t VMAX = 1.0f / sound_stream::sample_t(TMS3615_TONES);
-	for (int sampindex = 0; sampindex < stream.samples(); sampindex++)
+	int samplerate = buffer8.sample_rate();
+
+	constexpr stream_buffer::sample_t VMAX = 1.0f / stream_buffer::sample_t(TMS3615_TONES);
+	for (int sampindex = 0; sampindex < buffer8.samples(); sampindex++)
 	{
-		sound_stream::sample_t sum8 = 0, sum16 = 0;
+		stream_buffer::sample_t sum8 = 0, sum16 = 0;
 
 		for (int tone = 0; tone < TMS3615_TONES; tone++)
 		{
@@ -91,8 +94,8 @@ void tms3615_device::sound_stream_update(sound_stream &stream)
 			}
 		}
 
-		stream.put(FOOTAGE_8, sampindex, sum8);
-		stream.put(FOOTAGE_16, sampindex, sum16);
+		buffer8.put(sampindex, sum8);
+		buffer16.put(sampindex, sum16);
 	}
 }
 

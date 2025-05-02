@@ -64,12 +64,13 @@ void namco_63701x_device::device_start()
 //  sound_stream_update - handle a stream update
 //-------------------------------------------------
 
-void namco_63701x_device::sound_stream_update(sound_stream &stream)
+void namco_63701x_device::sound_stream_update(sound_stream &stream, std::vector<read_stream_view> const &inputs, std::vector<write_stream_view> &outputs)
 {
 	int ch;
 
 	for (ch = 0;ch < 2;ch++)
 	{
+		auto &buf = outputs[ch];
 		voice_63701x *v = &m_voices[ch];
 
 		if (v->playing)
@@ -79,12 +80,12 @@ void namco_63701x_device::sound_stream_update(sound_stream &stream)
 			int vol = vol_table[v->volume];
 			int p;
 
-			for (p = 0;p < stream.samples();p++)
+			for (p = 0;p < buf.samples();p++)
 			{
 				if (v->silence_counter)
 				{
 					v->silence_counter--;
-					stream.put(0, p, 0);
+					buf.put(p, 0);
 				}
 				else
 				{
@@ -93,24 +94,26 @@ void namco_63701x_device::sound_stream_update(sound_stream &stream)
 					if (data == 0xff)   /* end of sample */
 					{
 						v->playing = 0;
-						stream.fill(0, 0, p);
+						buf.fill(0, p);
 						break;
 					}
 					else if (data == 0x00)  /* silence compression */
 					{
 						data = base[(pos++) & 0xffff];
 						v->silence_counter = data;
-						stream.put(0, p, 0);
+						buf.put(p, 0);
 					}
 					else
 					{
-						stream.put_int(0, p, vol * (data - 0x80), 32768);
+						buf.put_int(p, vol * (data - 0x80), 32768);
 					}
 				}
 			}
 
 			v->position = pos;
 		}
+		else
+			buf.fill(0);
 	}
 }
 

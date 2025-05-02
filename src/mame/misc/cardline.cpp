@@ -352,11 +352,12 @@ void cardline_state::cardline(machine_config &config)
 	config.set_default_layout(layout_cardline);
 
 	/* sound hardware */
-	SPEAKER(config, "speaker", 2).front();
+	SPEAKER(config, "lspeaker").front_left();
+	SPEAKER(config, "rspeaker").front_right();
 
 	okim6295_device &oki(OKIM6295(config, "oki", 1056000, okim6295_device::PIN7_HIGH)); // clock frequency & pin 7 not verified
-	oki.add_route(ALL_OUTPUTS, "speaker", 1.0, 0);
-	oki.add_route(ALL_OUTPUTS, "speaker", 1.0, 1);
+	oki.add_route(ALL_OUTPUTS, "lspeaker", 1.0);
+	oki.add_route(ALL_OUTPUTS, "rspeaker", 1.0);
 }
 
 /***************************************************************************

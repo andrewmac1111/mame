@@ -104,7 +104,8 @@ void ct909e_megatrix_state::megatrix(machine_config &config)
 	m_screen->set_visarea(0, 320-1, 0, 240-1);
 	m_screen->set_screen_update(FUNC(ct909e_megatrix_state::screen_update));
 
-	SPEAKER(config, "speaker", 2).front();
+	SPEAKER(config, "lspeaker").front_left();
+	SPEAKER(config, "rspeaker").front_right();
 }
 
 ROM_START( megatrix )

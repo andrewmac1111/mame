@@ -49,7 +49,8 @@ public:
 		, m_usart(*this, "usart")
 //      , m_cassette(*this, "cassette")
 		, m_beeper(*this, "beeper")
-		, m_speaker(*this, "speaker")
+		, m_lspeaker(*this, "lspeaker")
+		, m_rspeaker(*this, "rspeaker")
 		, m_palette(*this, "palette")
 		, m_n80rom(*this, "n80rom")
 		, m_n88rom(*this, "n88rom")
@@ -90,7 +91,8 @@ protected:
 	required_device<i8251_device> m_usart;
 //  required_device<cassette_image_device> m_cassette;
 	required_device<beep_device> m_beeper;
-	required_device<speaker_device> m_speaker;
+	required_device<speaker_device> m_lspeaker;
+	required_device<speaker_device> m_rspeaker;
 	required_device<palette_device> m_palette;
 	required_region_ptr<u8> m_n80rom;
 	required_region_ptr<u8> m_n88rom;

@@ -440,11 +440,12 @@ void copsnrob_state::copsnrob(machine_config &config)
 	PALETTE(config, m_palette, palette_device::MONOCHROME);
 
 	// sound hardware
-	SPEAKER(config, "speaker", 2).front();
+	SPEAKER(config, "lspeaker").front_left();
+	SPEAKER(config, "rspeaker").front_right();
 
 	discrete_sound_device &discrete(DISCRETE(config, "discrete", copsnrob_discrete));
-	discrete.add_route(0, "speaker", 1.0, 0);
-	discrete.add_route(1, "speaker", 1.0, 1);
+	discrete.add_route(0, "lspeaker", 1.0);
+	discrete.add_route(1, "rspeaker", 1.0);
 
 	f9334_device &latch(F9334(config, "latch")); // H3 on audio board
 	latch.q_out_cb<0>().set("discrete", FUNC(discrete_device::write_line<COPSNROB_MOTOR3_INV>));

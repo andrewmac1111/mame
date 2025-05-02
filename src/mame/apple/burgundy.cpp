@@ -74,7 +74,7 @@ void burgundy_device::device_reset()
 //  our sound stream
 //-------------------------------------------------
 
-void burgundy_device::sound_stream_update(sound_stream &stream)
+void burgundy_device::sound_stream_update(sound_stream &stream, std::vector<read_stream_view> const &inputs, std::vector<write_stream_view> &outputs)
 {
 	if (m_codec_status & CODEC_BUSY)
 	{
@@ -88,13 +88,13 @@ void burgundy_device::sound_stream_update(sound_stream &stream)
 		const u32 data = swapendian_int32(m_output_cb(m_phase));
 		const s16 left = data >> 16;
 		const s16 right = data;
-		stream.put_int(0, 0, left, 32768);
-		stream.put_int(1, 0, right, 32768);
+		outputs[0].put_int(0, left, 32768);
+		outputs[1].put_int(0, right, 32768);
 	}
 	else
 	{
-		stream.put_int(0, 0, 0, 32768);
-		stream.put_int(1, 0, 0, 32768);
+		outputs[0].put_int(0, 0, 32768);
+		outputs[1].put_int(0, 0, 32768);
 	}
 
 	m_phase = (m_phase + 1) & 0xfff;

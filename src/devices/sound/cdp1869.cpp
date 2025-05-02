@@ -493,32 +493,33 @@ void cdp1869_device::cdp1869_palette(palette_device &palette) const
 //  our sound stream
 //-------------------------------------------------
 
-void cdp1869_device::sound_stream_update(sound_stream &stream)
+void cdp1869_device::sound_stream_update(sound_stream &stream, std::vector<read_stream_view> const &inputs, std::vector<write_stream_view> &outputs)
 {
-	sound_stream::sample_t signal = m_signal;
+	stream_buffer::sample_t signal = m_signal;
+	auto &buffer = outputs[0];
 
 	if (!m_toneoff && m_toneamp)
 	{
 		double frequency = (clock() / 2) / (512 >> m_tonefreq) / (m_tonediv + 1);
 //      double amplitude = m_toneamp * ((0.78*5) / 15);
 
-		int rate = stream.sample_rate() / 2;
+		int rate = buffer.sample_rate() / 2;
 
 		/* get progress through wave */
 		int incr = m_incr;
 
 		if (signal < 0)
 		{
-			signal = -(sound_stream::sample_t(m_toneamp) / 15.0);
+			signal = -(stream_buffer::sample_t(m_toneamp) / 15.0);
 		}
 		else
 		{
-			signal = sound_stream::sample_t(m_toneamp) / 15.0;
+			signal = stream_buffer::sample_t(m_toneamp) / 15.0;
 		}
 
-		for (int sampindex = 0; sampindex < stream.samples(); sampindex++)
+		for (int sampindex = 0; sampindex < buffer.samples(); sampindex++)
 		{
-			stream.put(0, sampindex, signal);
+			buffer.put(sampindex, signal);
 			incr -= frequency;
 			while( incr < 0 )
 			{
@@ -531,6 +532,8 @@ void cdp1869_device::sound_stream_update(sound_stream &stream)
 		m_incr = incr;
 		m_signal = signal;
 	}
+	else
+		buffer.fill(0);
 /*
     if (!m_wnoff)
     {

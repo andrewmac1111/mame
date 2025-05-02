@@ -304,7 +304,7 @@ protected:
 	optional_memory_bank_array<2> m_cgboard_bank;
 	optional_ioport_array<4> m_analog;
 	required_ioport_array<4> m_ports;
-	output_finder<2> m_pcb_digit;
+	output_finder<3> m_pcb_digit;
 	memory_view m_cg_view;
 
 	emu_timer *m_sound_irq_timer = nullptr;
@@ -438,6 +438,10 @@ void gticlub_base_state::sysreg_w(offs_t offset, uint8_t data)
 		case 0:
 		case 1:
 			m_pcb_digit[offset] = bitswap<7>(~data,0,1,2,3,4,5,6);
+			break;
+
+		case 2: // drive commands
+			m_pcb_digit[offset] = data;
 			break;
 
 		case 3:
@@ -902,7 +906,7 @@ void gticlub_state::gticlub(machine_config &config)
 	m_adc1038->set_input_callback(FUNC(gticlub_state::adc1038_input_callback));
 	m_adc1038->set_gti_club_hack(true);
 
-	K056230(config, m_k056230);
+	K056230(config, m_k056230, 0U);
 	m_k056230->irq_cb().set_inputline(m_maincpu, INPUT_LINE_IRQ2);
 
 	// video hardware
@@ -930,11 +934,12 @@ void gticlub_state::gticlub(machine_config &config)
 	K056800(config, m_k056800, XTAL(33'868'800)/2);
 	m_k056800->int_callback().set_inputline(m_audiocpu, M68K_IRQ_2);
 
-	SPEAKER(config, "speaker", 2).front();
+	SPEAKER(config, "lspeaker").front_left();
+	SPEAKER(config, "rspeaker").front_right();
 
 	rf5c400_device &rfsnd(RF5C400(config, "rfsnd", XTAL(33'868'800)/2));
-	rfsnd.add_route(0, "speaker", 1.0, 0);
-	rfsnd.add_route(1, "speaker", 1.0, 1);
+	rfsnd.add_route(0, "lspeaker", 1.0);
+	rfsnd.add_route(1, "rspeaker", 1.0);
 
 	KONPPC(config, m_konppc, 0);
 	m_konppc->set_dsp_tag(0, m_dsp[0]);
@@ -985,7 +990,7 @@ void hangplt_state::hangplt(machine_config &config)
 	ADC1038(config, m_adc1038, 0);
 	m_adc1038->set_input_callback(FUNC(hangplt_state::adc1038_input_callback));
 
-	K056230(config, m_k056230);
+	K056230(config, m_k056230, 0U);
 	m_k056230->irq_cb().set_inputline(m_maincpu, INPUT_LINE_IRQ2);
 
 	VOODOO_1(config, m_voodoo[0], voodoo_1_device::NOMINAL_CLOCK);
@@ -1034,11 +1039,12 @@ void hangplt_state::hangplt(machine_config &config)
 	K056800(config, m_k056800, XTAL(33'868'800)/2);
 	m_k056800->int_callback().set_inputline(m_audiocpu, M68K_IRQ_2);
 
-	SPEAKER(config, "speaker", 2).front();
+	SPEAKER(config, "lspeaker").front_left();
+	SPEAKER(config, "rspeaker").front_right();
 
 	rf5c400_device &rfsnd(RF5C400(config, "rfsnd", XTAL(33'868'800)/2));
-	rfsnd.add_route(0, "speaker", 1.0, 0);
-	rfsnd.add_route(1, "speaker", 1.0, 1);
+	rfsnd.add_route(0, "lspeaker", 1.0);
+	rfsnd.add_route(1, "rspeaker", 1.0);
 
 	KONPPC(config, m_konppc, 0);
 	m_konppc->set_dsp_tag(0, m_dsp[0]);
@@ -1418,12 +1424,12 @@ void hangplt_state::init_hangpltu()
 
 /*************************************************************************/
 
-GAME( 1996, gticlub,    0,        gticlub,  gticlub,  gticlub_state,  init_gticlub,  ROT0, "Konami", "GTI Club: Rally Cote D'Azur (ver EAA)", MACHINE_IMPERFECT_GRAPHICS | MACHINE_IMPERFECT_SOUND | MACHINE_NODEVICE_LAN )
-GAME( 1996, gticlubu,   gticlub,  gticlub,  gticlub,  gticlub_state,  init_gticlub,  ROT0, "Konami", "GTI Club: Rally Cote D'Azur (ver UAA)", MACHINE_IMPERFECT_GRAPHICS | MACHINE_IMPERFECT_SOUND | MACHINE_NODEVICE_LAN )
-GAME( 1996, gticluba,   gticlub,  gticlub,  gticlub,  gticlub_state,  init_gticlub,  ROT0, "Konami", "GTI Club: Rally Cote D'Azur (ver AAA)", MACHINE_IMPERFECT_GRAPHICS | MACHINE_IMPERFECT_SOUND | MACHINE_NODEVICE_LAN )
-GAME( 1996, gticlubj,   gticlub,  gticlub,  gticlub,  gticlub_state,  init_gticlub,  ROT0, "Konami", "GTI Club: Rally Cote D'Azur (ver JAA)", MACHINE_IMPERFECT_GRAPHICS | MACHINE_IMPERFECT_SOUND | MACHINE_NODEVICE_LAN )
-GAME( 1997, thunderh,   0,        thunderh, thunderh, thunderh_state, init_gticlub,  ROT0, "Konami", "Operation Thunder Hurricane (ver EAA)", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_GRAPHICS | MACHINE_IMPERFECT_SOUND | MACHINE_NODEVICE_LAN )
-GAME( 1997, thunderhu,  thunderh, thunderh, thunderh, thunderh_state, init_gticlub,  ROT0, "Konami", "Operation Thunder Hurricane (ver UAA)", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_GRAPHICS | MACHINE_IMPERFECT_SOUND | MACHINE_NODEVICE_LAN )
+GAME( 1996, gticlub,    0,        gticlub,  gticlub,  gticlub_state,  init_gticlub,  ROT0, "Konami", "GTI Club: Rally Cote D'Azur (ver EAA)", MACHINE_IMPERFECT_GRAPHICS | MACHINE_IMPERFECT_SOUND )
+GAME( 1996, gticlubu,   gticlub,  gticlub,  gticlub,  gticlub_state,  init_gticlub,  ROT0, "Konami", "GTI Club: Rally Cote D'Azur (ver UAA)", MACHINE_IMPERFECT_GRAPHICS | MACHINE_IMPERFECT_SOUND )
+GAME( 1996, gticluba,   gticlub,  gticlub,  gticlub,  gticlub_state,  init_gticlub,  ROT0, "Konami", "GTI Club: Rally Cote D'Azur (ver AAA)", MACHINE_IMPERFECT_GRAPHICS | MACHINE_IMPERFECT_SOUND )
+GAME( 1996, gticlubj,   gticlub,  gticlub,  gticlub,  gticlub_state,  init_gticlub,  ROT0, "Konami", "GTI Club: Rally Cote D'Azur (ver JAA)", MACHINE_IMPERFECT_GRAPHICS | MACHINE_IMPERFECT_SOUND )
+GAME( 1997, thunderh,   0,        thunderh, thunderh, thunderh_state, init_gticlub,  ROT0, "Konami", "Operation Thunder Hurricane (ver EAA)", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_GRAPHICS | MACHINE_IMPERFECT_SOUND )
+GAME( 1997, thunderhu,  thunderh, thunderh, thunderh, thunderh_state, init_gticlub,  ROT0, "Konami", "Operation Thunder Hurricane (ver UAA)", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_GRAPHICS | MACHINE_IMPERFECT_SOUND )
 GAME( 1997, slrasslt,   0,        slrasslt, slrasslt, gticlub_state,  init_gticlub,  ROT0, "Konami", "Solar Assault (ver UAA)", MACHINE_IMPERFECT_GRAPHICS | MACHINE_IMPERFECT_SOUND ) // Based on Revised code
 GAME( 1997, slrassltj,  slrasslt, slrasslt, slrasslt, gticlub_state,  init_gticlub,  ROT0, "Konami", "Solar Assault Revised (ver JAA)", MACHINE_IMPERFECT_GRAPHICS | MACHINE_IMPERFECT_SOUND )
 GAME( 1997, slrassltj1, slrasslt, slrasslt, slrasslt, gticlub_state,  init_gticlub,  ROT0, "Konami", "Solar Assault (ver JAA)", MACHINE_IMPERFECT_GRAPHICS | MACHINE_IMPERFECT_SOUND )

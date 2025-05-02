@@ -101,19 +101,25 @@ st2302u_device::st2302u_device(const machine_config &mconfig, const char *tag, d
 {
 }
 
-void st2205u_base_device::sound_stream_update(sound_stream &stream)
+void st2205u_base_device::sound_stream_update(sound_stream &stream, std::vector<read_stream_view> const &inputs, std::vector<write_stream_view> &outputs)
 {
-	int samples = stream.samples();
+	// reset the output stream
+	outputs[0].fill(0);
+	outputs[1].fill(0);
+	outputs[2].fill(0);
+	outputs[3].fill(0);
+
+	int samples = outputs[0].samples();
 	int outpos = 0;
 	while (samples-- != 0)
 	{
 		for (int channel = 0; channel < 4; channel++)
 		{
 			s16 adpcm_contribution = m_adpcm_level[channel];
-			stream.add_int(channel, outpos, adpcm_contribution * 0x10, 32768);
+			outputs[channel].add_int(outpos, adpcm_contribution * 0x10, 32768);
 
 			auto psg_contribution = std::sin((double)m_psg_freqcntr[channel]/4096.0f);
-			stream.add_int(channel, outpos, psg_contribution * m_psg_amplitude[channel]*0x80,32768);
+			outputs[channel].add_int(outpos, psg_contribution * m_psg_amplitude[channel]*0x80,32768);
 		}
 
 		outpos++;

@@ -135,7 +135,7 @@ namespace
 		virtual void device_start() override ATTR_COLD;
 
 		// sound stream update overrides
-		virtual void sound_stream_update(sound_stream &stream) override;
+		virtual void sound_stream_update(sound_stream &stream, std::vector<read_stream_view> const &inputs, std::vector<write_stream_view> &outputs) override;
 
 		// Power of 2
 		static constexpr int BUFFER_SIZE = 4;
@@ -499,18 +499,21 @@ void cocossc_sac_device::device_start()
 //  sound_stream_update - handle a stream update
 //-------------------------------------------------
 
-void cocossc_sac_device::sound_stream_update(sound_stream &stream)
+void cocossc_sac_device::sound_stream_update(sound_stream &stream, std::vector<read_stream_view> const &inputs, std::vector<write_stream_view> &outputs)
 {
-	int count = stream.samples();
+	auto &src = inputs[0];
+	auto &dst = outputs[0];
+
+	int count = dst.samples();
 	m_rms[m_index] = 0;
 
 	if( count > 0 )
 	{
 		for( int sampindex = 0; sampindex < count; sampindex++ )
 		{
-			auto source_sample = stream.get(0, sampindex);
+			auto source_sample = src.get(sampindex);
 			m_rms[m_index] += source_sample * source_sample;
-			stream.put(0, sampindex, source_sample);
+			dst.put(sampindex, source_sample);
 		}
 
 		m_rms[m_index] = m_rms[m_index] / count;

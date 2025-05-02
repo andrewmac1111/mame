@@ -459,18 +459,19 @@ void silkroad_state::silkroad(machine_config &config)
 	PALETTE(config, m_palette).set_format(palette_device::xRGB_555, 0x2000).set_membits(16);
 
 	// sound hardware
-	SPEAKER(config, "speaker", 2).front();
+	SPEAKER(config, "lspeaker").front_left();
+	SPEAKER(config, "rspeaker").front_right();
 
-	YM2151(config, "ymsnd", XTAL(3'579'545)).add_route(0, "speaker", 1.0, 0).add_route(1, "speaker", 1.0, 1);
+	YM2151(config, "ymsnd", XTAL(3'579'545)).add_route(0, "lspeaker", 1.0).add_route(1, "rspeaker", 1.0);
 
 	okim6295_device &oki1(OKIM6295(config, "oki1", XTAL(32'000'000) / 32, okim6295_device::PIN7_HIGH)); // clock frequency & pin 7 not verified (was 1056000)
 	oki1.set_addrmap(0, &silkroad_state::oki_map);
-	oki1.add_route(ALL_OUTPUTS, "speaker", 0.45, 0);
-	oki1.add_route(ALL_OUTPUTS, "speaker", 0.45, 1);
+	oki1.add_route(ALL_OUTPUTS, "lspeaker", 0.45);
+	oki1.add_route(ALL_OUTPUTS, "rspeaker", 0.45);
 
 	okim6295_device &oki2(OKIM6295(config, "oki2", XTAL(32'000'000) / 16, okim6295_device::PIN7_HIGH)); // clock frequency & pin 7 not verified (was 2112000)
-	oki2.add_route(ALL_OUTPUTS, "speaker", 0.45, 0);
-	oki2.add_route(ALL_OUTPUTS, "speaker", 0.45, 1);
+	oki2.add_route(ALL_OUTPUTS, "lspeaker", 0.45);
+	oki2.add_route(ALL_OUTPUTS, "rspeaker", 0.45);
 }
 
 

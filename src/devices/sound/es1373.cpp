@@ -80,7 +80,8 @@
 
 void es1373_device::device_add_mconfig(machine_config &config)
 {
-	SPEAKER(config, "speaker", 2).front();
+	SPEAKER(config, "lspeaker").front_left();
+	SPEAKER(config, "rspeaker").front_right();
 }
 
 DEFINE_DEVICE_TYPE(ES1373, es1373_device, "es1373", "Creative Labs Ensoniq AudioPCI97 ES1373")
@@ -210,21 +211,24 @@ TIMER_CALLBACK_MEMBER(es1373_device::delayed_stream_update)
 //  sound_stream_update - handle update requests for
 //  our sound stream
 //-------------------------------------------------
-void es1373_device::sound_stream_update(sound_stream &stream)
+void es1373_device::sound_stream_update(sound_stream &stream, std::vector<read_stream_view> const &inputs, std::vector<write_stream_view> &outputs)
 {
 	if (m_dac1.enable) {
 		LOGMASKED(LOG_UNIMPL, "%s: sound_stream_update DAC1 not implemented yet\n", tag());
 	}
 
 	if (m_dac2.enable) {
-		send_audio_out(m_dac2, ICSTATUS_DAC2_INT_MASK, stream);
+		send_audio_out(m_dac2, ICSTATUS_DAC2_INT_MASK, outputs[0], outputs[1]);
+	} else {
+		outputs[0].fill(0);
+		outputs[1].fill(0);
 	}
 
 	if (m_adc.enable) {
 		if (m_adc.format!=SCTRL_16BIT_MONO) {
 			LOGMASKED(LOG_UNIMPL, "%s: sound_stream_update Only SCTRL_16BIT_MONO recorded supported\n", tag());
 		} else {
-			for (int i=0; i<stream.samples(); i++) {
+			for (int i=0; i<outputs[0].samples(); i++) {
 				if (m_adc.buf_count<=m_adc.buf_size) {
 					LOGMASKED(LOG_OTHER, "%s: ADC buf_count: %i buf_size: %i buf_rptr: %i buf_wptr: %i\n", machine().describe_context(),
 						m_adc.buf_count, m_adc.buf_size, m_adc.buf_rptr, m_adc.buf_wptr);
@@ -266,7 +270,7 @@ void es1373_device::sound_stream_update(sound_stream &stream)
 //-------------------------------------------------
 //  send_audio_out - Sends channel audio output data
 //-------------------------------------------------
-void es1373_device::send_audio_out(chan_info& chan, uint32_t intr_mask, sound_stream &stream)
+void es1373_device::send_audio_out(chan_info& chan, uint32_t intr_mask, write_stream_view &outL, write_stream_view &outR)
 {
 	// Only transfer PCI data if bus mastering is enabled
 	// Fill initial half buffer
@@ -277,7 +281,7 @@ void es1373_device::send_audio_out(chan_info& chan, uint32_t intr_mask, sound_st
 	//uint32_t sample_size = calc_size(chan.format);
 	// Send data to sound stream
 	bool buf_row_done;
-	for (int i=0; i<stream.samples(); i++) {
+	for (int i=0; i<outL.samples(); i++) {
 		buf_row_done = false;
 		int16_t lsamp = 0, rsamp = 0;
 		if (chan.buf_count<=chan.buf_size) {
@@ -289,7 +293,7 @@ void es1373_device::send_audio_out(chan_info& chan, uint32_t intr_mask, sound_st
 			}
 			if (i == 0)
 				LOGMASKED(LOG_OTHER, "%s: chan: %X samples: %i buf_count: %X buf_size: %X buf_rptr: %X buf_wptr: %X\n",
-					machine().describe_context(), chan.number, stream.samples(), chan.buf_count, chan.buf_size, chan.buf_rptr, chan.buf_wptr);
+					machine().describe_context(), chan.number, outL.samples(), chan.buf_count, chan.buf_size, chan.buf_rptr, chan.buf_wptr);
 			// Buffer is 4 bytes per location, need to switch on sample mode
 			switch (chan.format) {
 				case SCTRL_8BIT_MONO:
@@ -336,8 +340,8 @@ void es1373_device::send_audio_out(chan_info& chan, uint32_t intr_mask, sound_st
 				chan.buf_rptr -= 0x10;
 			}
 		}
-		stream.put_int(0, i, lsamp, 32768);
-		stream.put_int(1, i, rsamp, 32768);
+		outL.put_int(i, lsamp, 32768);
+		outR.put_int(i, rsamp, 32768);
 	}
 }
 

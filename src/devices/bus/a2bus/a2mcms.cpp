@@ -249,16 +249,19 @@ TIMER_CALLBACK_MEMBER(mcms_device::clr_irq_tick)
 	m_write_irq(CLEAR_LINE);
 }
 
-void mcms_device::sound_stream_update(sound_stream &stream)
+void mcms_device::sound_stream_update(sound_stream &stream, std::vector<read_stream_view> const &inputs, std::vector<write_stream_view> &outputs)
 {
 	int i, v;
 	uint16_t wptr;
 	int8_t sample;
 	int32_t mixL, mixR;
 
+	auto &outL = outputs[1];
+	auto &outR = outputs[0];
+
 	if (m_enabled)
 	{
-		for (i = 0; i < stream.samples(); i++)
+		for (i = 0; i < outL.samples(); i++)
 		{
 			mixL = mixR = 0;
 
@@ -279,9 +282,14 @@ void mcms_device::sound_stream_update(sound_stream &stream)
 				}
 			}
 
-			stream.put_int(0, i, mixL * m_mastervol, 32768 << 9);
-			stream.put_int(1, i, mixR * m_mastervol, 32768 << 9);
+			outL.put_int(i, mixL * m_mastervol, 32768 << 9);
+			outR.put_int(i, mixR * m_mastervol, 32768 << 9);
 		}
+	}
+	else
+	{
+		outL.fill(0);
+		outR.fill(0);
 	}
 }
 

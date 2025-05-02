@@ -89,7 +89,8 @@ void actions_atj2279b_state::actions_atj2279b(machine_config &config)
 	screen.set_visarea(0, 1280-1, 0, 720-1); // resolution unconfirmed (possibly 1080p as well, but this is unlikely)
 	screen.set_screen_update(FUNC(actions_atj2279b_state::screen_update));
 
-	SPEAKER(config, "speaker", 2).front();
+	SPEAKER(config, "lspeaker").front_left();
+	SPEAKER(config, "rspeaker").front_right();
 }
 
 ROM_START( rbitgen )

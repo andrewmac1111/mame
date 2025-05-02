@@ -211,11 +211,13 @@ void cmi01a_device::device_reset()
 	update_filters();
 }
 
-void cmi01a_device::sound_stream_update(sound_stream &stream)
+void cmi01a_device::sound_stream_update(sound_stream &stream, std::vector<read_stream_view> const &inputs, std::vector<write_stream_view> &outputs)
 {
 	if (m_run)
 	{
-		for (int sampindex = 0; sampindex < stream.samples(); sampindex++)
+		auto &buf = outputs[0];
+
+		for (int sampindex = 0; sampindex < buf.samples(); sampindex++)
 		{
 			double sample = s8(m_current_sample ^ 0x80); // -128..127
 			double hbn = (sample + 2*m_ha0 + m_ha1 - m_ka1 * m_hb0 - m_ka2 * m_hb1) / m_ka0;
@@ -229,7 +231,7 @@ void cmi01a_device::sound_stream_update(sound_stream &stream)
 
 			double env = (m_env == 0) ? 0.0 : hbn * m_env; // -32768..32767 (guard against ∞ × 0 → NaN)
 			double vol = env * m_vol_latch; // -8388608..8388607
-			stream.put(0, sampindex, vol / 8388608);
+			buf.put(sampindex, vol / 8388608);
 		}
 	}
 	else
@@ -237,6 +239,7 @@ void cmi01a_device::sound_stream_update(sound_stream &stream)
 		m_ha0 = m_ha1 = 0;
 		m_hb0 = m_hb1 = 0;
 		m_hc0 = m_hc1 = 0;
+		outputs[0].fill(0);
 	}
 }
 

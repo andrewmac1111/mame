@@ -310,10 +310,11 @@ void littlerb_state::littlerb(machine_config &config)
 	TIMER(config, "step_timer").configure_periodic(FUNC(littlerb_state::sound_step_cb), attotime::from_hz(7500/150));
 	TIMER(config, "sound_timer").configure_periodic(FUNC(littlerb_state::sound_cb), attotime::from_hz(7500));
 
-	SPEAKER(config, "speaker", 2).front();
+	SPEAKER(config, "lspeaker").front_left();
+	SPEAKER(config, "rspeaker").front_right();
 
-	DAC_8BIT_R2R(config, m_ldac, 0).add_route(ALL_OUTPUTS, "speaker", 0.5, 0); // unknown DAC
-	DAC_8BIT_R2R(config, m_rdac, 0).add_route(ALL_OUTPUTS, "speaker", 0.5, 1); // unknown DAC
+	DAC_8BIT_R2R(config, m_ldac, 0).add_route(ALL_OUTPUTS, "lspeaker", 0.5); // unknown DAC
+	DAC_8BIT_R2R(config, m_rdac, 0).add_route(ALL_OUTPUTS, "rspeaker", 0.5); // unknown DAC
 }
 
 ROM_START( littlerb )

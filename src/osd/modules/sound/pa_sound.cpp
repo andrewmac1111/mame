@@ -52,7 +52,8 @@ public:
 
 	// sound_module
 
-	virtual void stream_sink_update(uint32_t, const s16 *buffer, int samples_this_frame) override;
+	virtual void update_audio_stream(bool is_throttled, const s16 *buffer, int samples_this_frame) override;
+	virtual void set_mastervolume(int attenuation) override;
 
 private:
 	// Lock free SPSC ring buffer
@@ -79,14 +80,14 @@ private:
 			writepos.store((writepos + n) % size);
 		}
 
-		int write(const T* src, int n) {
+		int write(const T* src, int n, int attenuation) {
 			n = std::min<int>(n, size - reserve - count());
 
 			if (writepos + n > size) {
-				memcpy(buf + writepos, src, sizeof(T) * (size - writepos));
-				memcpy(buf, src + (size - writepos), sizeof(T) * (n - (size - writepos)));
+				att_memcpy(buf + writepos, src, sizeof(T) * (size - writepos), attenuation);
+				att_memcpy(buf, src + (size - writepos), sizeof(T) * (n - (size - writepos)), attenuation);
 			} else {
-				memcpy(buf + writepos, src, sizeof(T) * n);
+				att_memcpy(buf + writepos, src, sizeof(T) * n, attenuation);
 			}
 
 			increment_writepos(n);
@@ -127,6 +128,13 @@ private:
 
 			return n;
 		}
+
+		void att_memcpy(T* dest, const T* data, int n, int attenuation) {
+			int level = powf(10.0, attenuation / 20.0) * 32768;
+			n /= sizeof(T);
+			while (n--)
+				*dest++ = (*data++ * level) >> 15;
+		}
 	};
 
 	enum
@@ -151,6 +159,7 @@ private:
 
 	int                 m_sample_rate;
 	int                 m_audio_latency;
+	int                 m_attenuation;
 
 	audio_buffer<s16>*  m_ab;
 
@@ -184,6 +193,7 @@ int sound_pa::init(osd_interface &osd, osd_options const &options)
 	unsigned long        frames_per_callback = paFramesPerBufferUnspecified;
 	double               callback_interval;
 
+	m_attenuation           = options.volume();
 	m_underflows            = 0;
 	m_overflows             = 0;
 	m_has_overflowed        = false;
@@ -379,7 +389,7 @@ int sound_pa::callback(s16* output_buffer, size_t number_of_samples)
 		m_ab->read(output_buffer, buf_ct);
 		std::memset(output_buffer + buf_ct, 0, (number_of_samples - buf_ct) * sizeof(s16));
 
-		// if stream_sink_update has been called, note the underflow
+		// if update_audio_stream has been called, note the underflow
 		if (m_osd_ticks)
 			m_has_underflowed = true;
 
@@ -389,7 +399,7 @@ int sound_pa::callback(s16* output_buffer, size_t number_of_samples)
 	return paContinue;
 }
 
-void sound_pa::stream_sink_update(uint32_t, const s16 *buffer, int samples_this_frame)
+void sound_pa::update_audio_stream(bool is_throttled, const s16 *buffer, int samples_this_frame)
 {
 	if (!m_sample_rate)
 		return;
@@ -413,10 +423,15 @@ void sound_pa::stream_sink_update(uint32_t, const s16 *buffer, int samples_this_
 		m_has_overflowed = false;
 	}
 
-	m_ab->write(buffer, samples_this_frame * 2);
+	m_ab->write(buffer, samples_this_frame * 2, m_attenuation);
 
 	// for determining buffer overflows, take the sample here instead of in the callback
 	m_osd_ticks = osd_ticks();
+}
+
+void sound_pa::set_mastervolume(int attenuation)
+{
+	m_attenuation = attenuation;
 }
 
 void sound_pa::exit()

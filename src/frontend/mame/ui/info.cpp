@@ -36,10 +36,9 @@ namespace ui {
 
 namespace {
 
-constexpr machine_flags::type MACHINE_ERRORS    = machine_flags::MECHANICAL;
+constexpr machine_flags::type MACHINE_ERRORS    = machine_flags::NOT_WORKING | machine_flags::MECHANICAL;
 constexpr machine_flags::type MACHINE_WARNINGS  = machine_flags::NO_COCKTAIL | machine_flags::REQUIRES_ARTWORK;
 constexpr machine_flags::type MACHINE_BTANB     = machine_flags::NO_SOUND_HW | machine_flags::IS_INCOMPLETE;
-constexpr device_t::flags_type DEVICE_ERRORS    = device_t::flags::NOT_WORKING;
 
 constexpr std::pair<device_t::feature_type, char const *> FEATURE_NAMES[] = {
 		{ device_t::feature::PROTECTION,    N_p("emulation-feature",    "protection")           },
@@ -64,14 +63,7 @@ constexpr std::pair<device_t::feature_type, char const *> FEATURE_NAMES[] = {
 		{ device_t::feature::LAN,           N_p("emulation-feature",    "LAN")                  },
 		{ device_t::feature::WAN,           N_p("emulation-feature",    "WAN")                  } };
 
-void get_general_warnings(
-		std::ostream &buf,
-		running_machine &machine,
-		machine_flags::type machflags,
-		device_t::flags_type devflags,
-		device_t::feature_type unemulated,
-		device_t::feature_type imperfect,
-		bool has_nonworking_devices)
+void get_general_warnings(std::ostream &buf, running_machine &machine, machine_flags::type flags, device_t::feature_type unemulated, device_t::feature_type imperfect)
 {
 	// add a warning if any ROMs were loaded with warnings
 	bool bad_roms(false);
@@ -87,7 +79,7 @@ void get_general_warnings(
 	}
 
 	// if we have at least one warning flag, print the general header
-	if ((machine.rom_load().knownbad() > 0) || (machflags & (MACHINE_ERRORS | MACHINE_WARNINGS | MACHINE_BTANB)) || (devflags & DEVICE_ERRORS) || unemulated || imperfect || has_nonworking_devices)
+	if ((machine.rom_load().knownbad() > 0) || (flags & (MACHINE_ERRORS | MACHINE_WARNINGS | MACHINE_BTANB)) || unemulated || imperfect)
 	{
 		if (bad_roms)
 			buf << '\n';
@@ -99,12 +91,8 @@ void get_general_warnings(
 		buf << _("One or more ROMs/disk images for this system have not been correctly dumped.\n");
 }
 
-void get_device_warnings(std::ostream &buf, device_t::flags_type flags, device_t::feature_type unemulated, device_t::feature_type imperfect)
+void get_device_warnings(std::ostream &buf, device_t::feature_type unemulated, device_t::feature_type imperfect)
 {
-	// add line for not working
-	if (flags & device_t::flags::NOT_WORKING)
-		buf << _("THIS DEVICE DOES NOT WORK.\n");
-
 	// add line for unemulated features
 	if (unemulated)
 	{
@@ -138,74 +126,48 @@ void get_device_warnings(std::ostream &buf, device_t::flags_type flags, device_t
 	}
 }
 
-void get_system_warnings(
-		std::ostream &buf,
-		running_machine &machine,
-		machine_flags::type machflags,
-		device_t::flags_type devflags,
-		device_t::feature_type unemulated,
-		device_t::feature_type imperfect,
-		bool has_nonworking_devices)
+void get_system_warnings(std::ostream &buf, running_machine &machine, machine_flags::type flags, device_t::feature_type unemulated, device_t::feature_type imperfect)
 {
 	std::streampos start_position = buf.tellp();
 
 	// start with the unemulated/imperfect features
-	get_device_warnings(buf, device_t::flags::NONE, unemulated, imperfect);
+	get_device_warnings(buf, unemulated, imperfect);
 
 	// add one line per machine warning flag
-	if (machflags & ::machine_flags::NO_COCKTAIL)
+	if (flags & ::machine_flags::NO_COCKTAIL)
 		buf << _("Screen flipping in cocktail mode is not supported.\n");
-	if (machflags & ::machine_flags::REQUIRES_ARTWORK)
+	if (flags & ::machine_flags::REQUIRES_ARTWORK)
 		buf << _("This system requires external artwork files.\n");
 
 	// add the 'BTANB' warnings
-	if (machflags & ::machine_flags::IS_INCOMPLETE)
+	if (flags & ::machine_flags::IS_INCOMPLETE)
 	{
 		if (buf.tellp() > start_position)
 			buf << '\n';
 		buf << _("This system was never completed. It may exhibit strange behavior or missing elements that are not bugs in the emulation.\n");
 	}
-	if (machflags & ::machine_flags::NO_SOUND_HW)
+	if (flags & ::machine_flags::NO_SOUND_HW)
 	{
 		if (buf.tellp() > start_position)
 			buf << '\n';
 		buf << _("This system has no sound hardware, MAME will produce no sounds, this is expected behavior.\n");
 	}
 
-	// list devices that don't work
-	if (has_nonworking_devices)
-	{
-		if (buf.tellp() > start_position)
-			buf << '\n';
-		buf << _("The following devices do not work: ");
-		bool first = true;
-		std::set<std::add_pointer_t<device_type> > seen;
-		for (device_t &device : device_enumerator(machine.root_device()))
-		{
-			if ((device.type().emulation_flags() & device_t::flags::NOT_WORKING) && seen.insert(&device.type()).second)
-			{
-				util::stream_format(buf, first ? _("%s") : _(", %s"), device.type().fullname());
-				first = false;
-			}
-		}
-		buf << '\n';
-	}
-
 	// these are more severe warnings
-	if (machflags & ::machine_flags::MECHANICAL)
+	if (flags & ::machine_flags::MECHANICAL)
 	{
 		if (buf.tellp() > start_position)
 			buf << '\n';
 		buf << _("Elements of this system cannot be emulated accurately as they require physical interaction or consist of mechanical devices. It is not possible to fully experience this system.\n");
 	}
-	if (devflags & device_t::flags::NOT_WORKING)
+	if (flags & ::machine_flags::NOT_WORKING)
 	{
 		if (buf.tellp() > start_position)
 			buf << '\n';
 		buf << _("THIS SYSTEM DOESN'T WORK. The emulation for this system is not yet complete. There is nothing you can do to fix this problem except wait for the developers to improve the emulation.\n");
 	}
 
-	if ((machflags & MACHINE_ERRORS) || (devflags & DEVICE_ERRORS) || ((machine.system().type.unemulated_features() | machine.system().type.imperfect_features()) & device_t::feature::PROTECTION))
+	if ((flags & MACHINE_ERRORS) || ((machine.system().type.unemulated_features() | machine.system().type.imperfect_features()) & device_t::feature::PROTECTION))
 	{
 		// find the parent of this driver
 		driver_enumerator drivlist(machine.options());
@@ -221,7 +183,7 @@ void get_system_warnings(
 			if (drivlist.current() == maindrv || drivlist.clone() == maindrv)
 			{
 				game_driver const &driver(drivlist.driver());
-				if (!(driver.flags & MACHINE_ERRORS) && !(driver.type.emulation_flags() & DEVICE_ERRORS) && !((driver.type.unemulated_features() | driver.type.imperfect_features()) & device_t::feature::PROTECTION))
+				if (!(driver.flags & MACHINE_ERRORS) && !((driver.type.unemulated_features() | driver.type.imperfect_features()) & device_t::feature::PROTECTION))
 				{
 					// this one works, add a header and display the name of the clone
 					if (!foundworking)
@@ -258,10 +220,8 @@ machine_static_info::machine_static_info(const ui_options &options, machine_conf
 machine_static_info::machine_static_info(const ui_options &options, machine_config const &config, ioport_list const *ports)
 	: m_options(options)
 	, m_flags(config.gamedrv().flags)
-	, m_emulation_flags(config.gamedrv().type.emulation_flags())
 	, m_unemulated_features(config.gamedrv().type.unemulated_features())
 	, m_imperfect_features(config.gamedrv().type.imperfect_features())
-	, m_has_nonworking_devices(false)
 	, m_has_bioses(false)
 	, m_has_dips(false)
 	, m_has_configs(false)
@@ -278,10 +238,8 @@ machine_static_info::machine_static_info(const ui_options &options, machine_conf
 			m_flags &= ~::machine_flags::NO_SOUND_HW;
 
 		// build overall emulation status
-		m_emulation_flags |= device.type().emulation_flags() & ~device_t::flags::NOT_WORKING;
 		m_unemulated_features |= device.type().unemulated_features();
 		m_imperfect_features |= device.type().imperfect_features();
-		m_has_nonworking_devices = m_has_nonworking_devices || (device.type().emulation_flags() & device_t::flags::NOT_WORKING);
 
 		// look for BIOS options
 		device_t const *const parent(device.owner());
@@ -339,14 +297,9 @@ machine_static_info::machine_static_info(const ui_options &options, machine_conf
 //  issues that warrant a yellow/red message
 //-------------------------------------------------
 
-bool machine_static_info::has_warnings() const noexcept
+bool machine_static_info::has_warnings() const
 {
-	return
-			(machine_flags() & (MACHINE_ERRORS | MACHINE_WARNINGS)) ||
-			(emulation_flags() & DEVICE_ERRORS) ||
-			unemulated_features() ||
-			imperfect_features() ||
-			has_nonworking_devices();
+	return (machine_flags() & (MACHINE_ERRORS | MACHINE_WARNINGS)) || unemulated_features() || imperfect_features();
 }
 
 
@@ -355,11 +308,10 @@ bool machine_static_info::has_warnings() const noexcept
 //  system has issues that warrant a red message
 //-------------------------------------------------
 
-bool machine_static_info::has_severe_warnings() const noexcept
+bool machine_static_info::has_severe_warnings() const
 {
 	return
 			(machine_flags() & MACHINE_ERRORS) ||
-			(emulation_flags() & DEVICE_ERRORS) ||
 			(unemulated_features() & (device_t::feature::PROTECTION | device_t::feature::GRAPHICS | device_t::feature::SOUND)) ||
 			(imperfect_features() & device_t::feature::PROTECTION);
 }
@@ -370,7 +322,7 @@ bool machine_static_info::has_severe_warnings() const noexcept
 //  driver status box
 //-------------------------------------------------
 
-rgb_t machine_static_info::status_color() const noexcept
+rgb_t machine_static_info::status_color() const
 {
 	if (has_severe_warnings())
 		return UI_RED_COLOR;
@@ -386,7 +338,7 @@ rgb_t machine_static_info::status_color() const noexcept
 //  warning message based on severity
 //-------------------------------------------------
 
-rgb_t machine_static_info::warnings_color() const noexcept
+rgb_t machine_static_info::warnings_color() const
 {
 	if (has_severe_warnings())
 		return UI_RED_COLOR;
@@ -421,8 +373,8 @@ machine_info::machine_info(running_machine &machine)
 std::string machine_info::warnings_string() const
 {
 	std::ostringstream buf;
-	get_general_warnings(buf, m_machine, machine_flags(), emulation_flags(), unemulated_features(), imperfect_features(), has_nonworking_devices());
-	get_system_warnings(buf, m_machine, machine_flags(), emulation_flags(), unemulated_features(), imperfect_features(), has_nonworking_devices());
+	get_general_warnings(buf, m_machine, machine_flags(), unemulated_features(), imperfect_features());
+	get_system_warnings(buf, m_machine, machine_flags(), unemulated_features(), imperfect_features());
 	return buf.str();
 }
 
@@ -494,7 +446,7 @@ std::string machine_info::game_info_string() const
 	bool found_sound = false;
 	for (device_sound_interface &sound : snditer)
 	{
-		if (!soundtags.insert(sound.device().tag()).second)
+		if (!sound.issound() || !soundtags.insert(sound.device().tag()).second)
 			continue;
 
 		// append the Sound: string
@@ -648,26 +600,26 @@ void menu_warn_info::populate_text(std::optional<text_layout> &layout, float &wi
 
 		machine_info const &info(ui().machine_info());
 		device_t &root(machine().root_device());
-		get_general_warnings(buf, machine(), info.machine_flags(), info.emulation_flags(), info.unemulated_features(), info.imperfect_features(), info.has_nonworking_devices());
-		if ((info.machine_flags() & (MACHINE_ERRORS | MACHINE_WARNINGS | MACHINE_BTANB)) || (root.type().emulation_flags() & DEVICE_ERRORS) || root.type().unemulated_features() || root.type().imperfect_features())
+		get_general_warnings(buf, machine(), info.machine_flags(), info.unemulated_features(), info.imperfect_features());
+		if ((info.machine_flags() & (MACHINE_ERRORS | MACHINE_WARNINGS | MACHINE_BTANB)) || root.type().unemulated_features() || root.type().imperfect_features())
 		{
 			seen.insert(&root.type());
 			if (!first)
 				buf << '\n';
 			first = false;
 			util::stream_format(buf, _("%1$s:\n"), root.name());
-			get_system_warnings(buf, machine(), info.machine_flags(), root.type().emulation_flags(), root.type().unemulated_features(), root.type().imperfect_features(), false);
+			get_system_warnings(buf, machine(), info.machine_flags(), root.type().unemulated_features(), root.type().imperfect_features());
 		}
 
 		for (device_t const &device : device_enumerator(root))
 		{
-			if (((device.type().emulation_flags() & DEVICE_ERRORS) || device.type().unemulated_features() || device.type().imperfect_features()) && seen.insert(&device.type()).second)
+			if ((device.type().unemulated_features() || device.type().imperfect_features()) && seen.insert(&device.type()).second)
 			{
 				if (!first)
 					buf << '\n';
 				first = false;
 				util::stream_format(buf, _("%1$s:\n"), device.name());
-				get_device_warnings(buf, device.type().emulation_flags(), device.type().unemulated_features(), device.type().imperfect_features());
+				get_device_warnings(buf, device.type().unemulated_features(), device.type().imperfect_features());
 			}
 		}
 

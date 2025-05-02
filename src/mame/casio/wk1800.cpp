@@ -321,11 +321,12 @@ void wk1600_state::wk1600(machine_config &config)
 	screen.set_visarea_full();
 	screen.screen_vblank().set(FUNC(wk1600_state::render_w));
 
-	SPEAKER(config, "speaker", 2).front();
+	SPEAKER(config, "lspeaker").front_left();
+	SPEAKER(config, "rspeaker").front_right();
 
 	GT155(config, m_gt155, 24.576_MHz_XTAL);
-	m_gt155->add_route(0, "speaker", 1.0, 0);
-	m_gt155->add_route(1, "speaker", 1.0, 1);
+	m_gt155->add_route(0, "lspeaker", 1.0);
+	m_gt155->add_route(1, "rspeaker", 1.0);
 }
 
 /**************************************************************************/

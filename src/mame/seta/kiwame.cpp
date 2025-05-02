@@ -292,11 +292,12 @@ void kiwame_state::kiwame(machine_config &config)
 	PALETTE(config, "palette").set_format(palette_device::xRGB_555, 512);    // sprites only
 
 	/* sound hardware */
-	SPEAKER(config, "speaker", 2).front();
+	SPEAKER(config, "lspeaker").front_left();
+	SPEAKER(config, "rspeaker").front_right();
 
 	x1_010_device &x1snd(X1_010(config, "x1snd", 16000000));
-	x1snd.add_route(0, "speaker", 1.0, 0);
-	x1snd.add_route(1, "speaker", 1.0, 1);
+	x1snd.add_route(0, "lspeaker", 1.0);
+	x1snd.add_route(1, "rspeaker", 1.0);
 }
 
 

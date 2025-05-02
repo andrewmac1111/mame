@@ -103,7 +103,7 @@ void awacs_device::device_reset()
 //  our sound stream
 //-------------------------------------------------
 
-void awacs_device::sound_stream_update(sound_stream &stream)
+void awacs_device::sound_stream_update(sound_stream &stream, std::vector<read_stream_view> const &inputs, std::vector<write_stream_view> &outputs)
 {
 	m_last_sample = machine().time();
 
@@ -119,14 +119,14 @@ void awacs_device::sound_stream_update(sound_stream &stream)
 		u32 data = m_output_cb(m_phase | (m_output_buffer ? 0x10000 : 0));
 		s16 left = data >> 16;
 		s16 right = data;
-		stream.put_int(0, 0, left, 32768);
-		stream.put_int(1, 0, right, 32768);
+		outputs[0].put_int(0, left, 32768);
+		outputs[1].put_int(0, right, 32768);
 
 	} else {
 		m_output_buffer = false;
 
-		stream.put_int(0, 0, 0, 32768);
-		stream.put_int(1, 0, 0, 32768);
+		outputs[0].put_int(0, 0, 32768);
+		outputs[1].put_int(0, 0, 32768);
 	}
 
 	if(m_active & ACTIVE_IN)

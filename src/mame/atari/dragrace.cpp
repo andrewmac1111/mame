@@ -451,11 +451,12 @@ void dragrace_state::dragrace(machine_config &config)
 	PALETTE(config, "palette", FUNC(dragrace_state::palette), 16);
 
 	// sound hardware
-	SPEAKER(config, "speaker", 2).front();
+	SPEAKER(config, "lspeaker").front_left();
+	SPEAKER(config, "rspeaker").front_right();
 
 	DISCRETE(config, m_discrete, dragrace_discrete);
-	m_discrete->add_route(0, "speaker", 1.0, 0);
-	m_discrete->add_route(1, "speaker", 1.0, 1);
+	m_discrete->add_route(0, "lspeaker", 1.0);
+	m_discrete->add_route(1, "rspeaker", 1.0);
 
 	f9334_device &latch_f5(F9334(config, "latch_f5")); // F5
 	latch_f5.parallel_out_cb().set(FUNC(dragrace_state::speed1_w)).mask(0x1f); // set 3SPEED1-7SPEED1

@@ -233,11 +233,12 @@ void korg_ds8_state::ds8(machine_config &config)
 	lcdc.set_lcd_size(2, 40);
 	lcdc.set_pixel_update_cb(FUNC(korg_ds8_state::lcd_pixel_update));
 
-	SPEAKER(config, "speaker", 2).front();
+	SPEAKER(config, "lspeaker").front_left();
+	SPEAKER(config, "rspeaker").front_right();
 
 	ym2164_device &fm(YM2164(config, "fm", 3.579545_MHz_XTAL)); // YM2164 + YM3012
-	fm.add_route(0, "speaker", 1.00, 0);
-	fm.add_route(1, "speaker", 1.00, 1);
+	fm.add_route(0, "lspeaker", 1.00);
+	fm.add_route(1, "rspeaker", 1.00);
 }
 
 void korg_ds8_state::korg707(machine_config &config)

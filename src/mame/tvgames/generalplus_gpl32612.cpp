@@ -184,7 +184,8 @@ void generalplus_gpl32612_game_state::gpl32612(machine_config &config)
 	m_screen->set_visarea(0, 320-1, 0, 240-1);
 	m_screen->set_screen_update(FUNC(generalplus_gpl32612_game_state::screen_update_gpl32612));
 
-	SPEAKER(config, "speaker", 2).front();
+	SPEAKER(config, "lspeaker").front_left();
+	SPEAKER(config, "rspeaker").front_right();
 }
 
 void generalplus_zippity_game_state::machine_start()
@@ -223,7 +224,8 @@ void generalplus_zippity_game_state::zippity(machine_config &config)
 	m_screen->set_visarea(0, 320-1, 0, 240-1);
 	m_screen->set_screen_update(FUNC(generalplus_zippity_game_state::screen_update_gpl32612));
 
-	SPEAKER(config, "speaker", 2).front();
+	SPEAKER(config, "lspeaker").front_left();
+	SPEAKER(config, "rspeaker").front_right();
 
 	GENERIC_CARTSLOT(config, m_cart, generic_plain_slot, "leapfrog_zippity_cart");
 	m_cart->set_width(GENERIC_ROM16_WIDTH);

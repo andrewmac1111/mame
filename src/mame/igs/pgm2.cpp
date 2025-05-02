@@ -776,11 +776,12 @@ void pgm2_state::pgm2(machine_config &config)
 
 	NVRAM(config, "sram", nvram_device::DEFAULT_ALL_0);
 
-	SPEAKER(config, "speaker", 2).front();
+	SPEAKER(config, "lspeaker").front_left();
+	SPEAKER(config, "rspeaker").front_right();
 
 	ymz774_device &ymz774(YMZ774(config, "ymz774", 16384000)); // is clock correct ?
-	ymz774.add_route(0, "speaker", 1.0, 0);
-	ymz774.add_route(1, "speaker", 1.0, 1);
+	ymz774.add_route(0, "lspeaker", 1.0);
+	ymz774.add_route(1, "rspeaker", 1.0);
 
 	PGM2_MEMCARD(config, m_memcard[0], 0);
 	PGM2_MEMCARD(config, m_memcard[1], 0);

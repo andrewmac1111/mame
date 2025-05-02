@@ -75,11 +75,12 @@ void cougar_state::cougar(machine_config &config)
 
 	//SCREEN(config, "screen", SCREEN_TYPE_RASTER);
 
-	SPEAKER(config, "speaker", 2).front();
+	SPEAKER(config, "lspeaker").front_left();
+	SPEAKER(config, "rspeaker").front_right();
 
 	ymz280b_device &ymz(YMZ280B(config, "ymz", 16.9344_MHz_XTAL));
-	ymz.add_route(0, "speaker", 1.0, 0);
-	ymz.add_route(1, "speaker", 1.0, 1);
+	ymz.add_route(0, "lspeaker", 1.0);
+	ymz.add_route(1, "rspeaker", 1.0);
 }
 
 /***************************************************************************

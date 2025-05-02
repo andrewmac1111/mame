@@ -1464,11 +1464,12 @@ void sigmab98_state::sigmab98(machine_config &config)
 	BUFFERED_SPRITERAM8(config, m_buffered_spriteram);
 
 	// sound hardware
-	SPEAKER(config, "speaker", 2).front();
+	SPEAKER(config, "lspeaker").front_left();
+	SPEAKER(config, "rspeaker").front_right();
 
 	ymz280b_device &ymz(YMZ280B(config, "ymz", 16934400));    // clock @X2?
-	ymz.add_route(0, "speaker", 1.0, 0);
-	ymz.add_route(1, "speaker", 1.0, 1);
+	ymz.add_route(0, "lspeaker", 1.0);
+	ymz.add_route(1, "rspeaker", 1.0);
 }
 
 void sigmab98_state::dodghero(machine_config &config)
@@ -1544,10 +1545,11 @@ void lufykzku_state::lufykzku(machine_config &config)
 	//BUFFERED_SPRITERAM8(config, m_buffered_spriteram); // same as sammymdl?
 
 	// sound hardware
-	SPEAKER(config, "speaker", 2).front();
+	SPEAKER(config, "lspeaker").front_left();
+	SPEAKER(config, "rspeaker").front_right();
 	okim9810_device &oki(OKIM9810(config, "oki", XTAL(4'096'000)));
-	oki.add_route(0, "speaker", 0.80, 0);
-	oki.add_route(1, "speaker", 0.80, 1);
+	oki.add_route(0, "lspeaker", 0.80);
+	oki.add_route(1, "rspeaker", 0.80);
 }
 
 void lufykzku_state::rockman(machine_config& config)
@@ -1614,11 +1616,12 @@ void sammymdl_state::sammymdl(machine_config &config)
 	//BUFFERED_SPRITERAM8(config, m_buffered_spriteram); // not on sammymdl?
 
 	// sound hardware
-	SPEAKER(config, "speaker", 2).front();
+	SPEAKER(config, "lspeaker").front_left();
+	SPEAKER(config, "rspeaker").front_right();
 
 	okim9810_device &oki(OKIM9810(config, "oki", XTAL(4'096'000)));
-	oki.add_route(0, "speaker", 0.80, 0);
-	oki.add_route(1, "speaker", 0.80, 1);
+	oki.add_route(0, "lspeaker", 0.80);
+	oki.add_route(1, "rspeaker", 0.80);
 }
 
 void sammymdl_state::animalc(machine_config &config)

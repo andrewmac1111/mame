@@ -99,7 +99,8 @@ void cowtipping_state::cowtipping(machine_config &config)
 
 	PALETTE(config, "palette").set_entries(65536); // wrong
 
-	SPEAKER(config, "speaker", 2).front();
+	SPEAKER(config, "lspeaker").front_left();
+	SPEAKER(config, "rspeaker").front_right();
 }
 
 

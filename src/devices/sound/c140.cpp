@@ -215,12 +215,12 @@ void c140_device::rom_bank_pre_change()
 //  sound_stream_update - handle a stream update
 //-------------------------------------------------
 
-void c140_device::sound_stream_update(sound_stream &stream)
+void c140_device::sound_stream_update(sound_stream &stream, std::vector<read_stream_view> const &inputs, std::vector<write_stream_view> &outputs)
 {
 	float pbase = (float)m_baserate * 2.0f / (float)m_sample_rate;
 	s16 *lmix, *rmix;
 
-	int samples = stream.samples();
+	int samples = outputs[0].samples();
 	if (samples > m_sample_rate) samples = m_sample_rate;
 
 	/* zap the contents of the mixer buffer */
@@ -317,20 +317,22 @@ void c140_device::sound_stream_update(sound_stream &stream)
 	lmix = m_mixer_buffer_left.get();
 	rmix = m_mixer_buffer_right.get();
 	{
+		auto &dest1 = outputs[0];
+		auto &dest2 = outputs[1];
 		for (int i = 0; i < samples; i++)
 		{
-			stream.put_int_clamp(0, i, *lmix++, 32768 / 8);
-			stream.put_int_clamp(1, i, *rmix++, 32768 / 8);
+			dest1.put_int_clamp(i, *lmix++, 32768 / 8);
+			dest2.put_int_clamp(i, *rmix++, 32768 / 8);
 		}
 	}
 }
 
-void c219_device::sound_stream_update(sound_stream &stream)
+void c219_device::sound_stream_update(sound_stream &stream, std::vector<read_stream_view> const &inputs, std::vector<write_stream_view> &outputs)
 {
 	float pbase = (float)m_baserate * 2.0f / (float)m_sample_rate;
 	s16 *lmix, *rmix;
 
-	int samples = stream.samples();
+	int samples = outputs[0].samples();
 	if (samples > m_sample_rate) samples = m_sample_rate;
 
 	/* zap the contents of the mixer buffer */
@@ -446,10 +448,12 @@ void c219_device::sound_stream_update(sound_stream &stream)
 	lmix = m_mixer_buffer_left.get();
 	rmix = m_mixer_buffer_right.get();
 	{
+		auto &dest1 = outputs[0];
+		auto &dest2 = outputs[1];
 		for (int i = 0; i < samples; i++)
 		{
-			stream.put_int_clamp(0, i, *lmix++, 32768 / 8);
-			stream.put_int_clamp(1, i, *rmix++, 32768 / 8);
+			dest1.put_int_clamp(i, *lmix++, 32768 / 8);
+			dest2.put_int_clamp(i, *rmix++, 32768 / 8);
 		}
 	}
 }

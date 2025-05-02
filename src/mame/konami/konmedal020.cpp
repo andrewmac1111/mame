@@ -107,11 +107,12 @@ void konmedal020_state::gs471(machine_config &config)
 	m_vga->set_vram_size(0x100000);
 
 	/* sound hardware */
-	SPEAKER(config, "speaker", 2).front();
+	SPEAKER(config, "lspeaker").front_left();
+	SPEAKER(config, "rspeaker").front_right();
 
 	YMZ280B(config, m_ymz, XTAL(16'934'400)); // 16.9344 MHz xtal verified on PCB
-	m_ymz->add_route(0, "speaker", 0.75, 0);
-	m_ymz->add_route(1, "speaker", 0.75, 1);
+	m_ymz->add_route(0, "lspeaker", 0.75);
+	m_ymz->add_route(1, "rspeaker", 0.75);
 }
 
 ROM_START( gs471 )

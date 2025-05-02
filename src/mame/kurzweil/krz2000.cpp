@@ -368,7 +368,8 @@ void k2000_state::k2000(machine_config &config)
 
 	LM24014H(config, "lcd");
 
-	SPEAKER(config, "speaker", 2).front();
+	SPEAKER(config, "lspeaker").front_left();
+	SPEAKER(config, "rspeaker").front_right();
 }
 
 void k2000_state::k2000_palette(palette_device &palette) const

@@ -142,17 +142,20 @@ void setapcm_device<MaxVoices, Divider>::device_clock_changed()
 //-------------------------------------------------
 
 template<unsigned MaxVoices, unsigned Divider>
-void setapcm_device<MaxVoices, Divider>::sound_stream_update(sound_stream &stream)
+void setapcm_device<MaxVoices, Divider>::sound_stream_update(sound_stream &stream, std::vector<read_stream_view> const &inputs, std::vector<write_stream_view> &outputs)
 {
-	for (int sampleind = 0; sampleind < stream.samples(); sampleind++)
+	outputs[0].fill(0);
+	outputs[1].fill(0);
+
+	for (int sampleind = 0; sampleind < outputs[0].samples(); sampleind++)
 	{
 		for (int v = 0; v < MAX_VOICES; v++)
 		{
 			// check if voice is activated
 			if (m_voice[v].update())
 			{
-				stream.add_int(0, sampleind, (m_voice[v].m_out * m_voice[v].m_vol_l) >> 16, 32768 * MAX_VOICES);
-				stream.add_int(1, sampleind, (m_voice[v].m_out * m_voice[v].m_vol_r) >> 16, 32768 * MAX_VOICES);
+				outputs[0].add_int(sampleind, (m_voice[v].m_out * m_voice[v].m_vol_l) >> 16, 32768 * MAX_VOICES);
+				outputs[1].add_int(sampleind, (m_voice[v].m_out * m_voice[v].m_vol_r) >> 16, 32768 * MAX_VOICES);
 			}
 		}
 	}
