@@ -90,6 +90,7 @@ private:
 	struct stream_info {
 		sound_pipewire *m_wire;
 		bool m_is_output;
+		bool m_wait_stream;
 		uint32_t m_osdid;
 		uint32_t m_node_id;
 		node_info *m_node;
@@ -98,7 +99,7 @@ private:
 		std::vector<float> m_volumes;
 		abuffer m_buffer;
 
-		stream_info(sound_pipewire *wire, bool is_output, uint32_t osdid, uint32_t channels) : m_wire(wire), m_is_output(is_output), m_osdid(osdid), m_channels(channels), m_stream(nullptr), m_buffer(channels) {}
+		stream_info(sound_pipewire *wire, bool is_output, uint32_t osdid, uint32_t channels) : m_wire(wire), m_is_output(is_output), m_wait_stream(true), m_osdid(osdid), m_channels(channels), m_stream(nullptr), m_buffer(channels) {}
 	};
 	
 	static const pw_core_events     core_events;
@@ -127,7 +128,7 @@ private:
 
 	uint32_t m_node_current_id, m_stream_current_id;
 	uint32_t m_generation;
-	bool m_wait_sync, m_wait_stream;
+	bool m_wait_sync;
 
 	void sync();
 
@@ -172,7 +173,9 @@ const sound_pipewire::position_info sound_pipewire::position_infos[] = {
 	{ SPA_AUDIO_CHANNEL_RL,      { -0.2,  0.0, -0.5 } },
 	{ SPA_AUDIO_CHANNEL_RR,      {  0.2,  0.0, -0.5 } },
 	{ SPA_AUDIO_CHANNEL_RC,      {  0.0,  0.0, -0.5 } },
+	{ SPA_AUDIO_CHANNEL_AUX0,    {  0.0,  0.0, 10.0 } },
 	{ SPA_AUDIO_CHANNEL_UNKNOWN, {  0.0,  0.0,  0.0 } }
+
 };
 
 
@@ -422,7 +425,9 @@ void sound_pipewire::node_event_param(node_info *node, int seq, uint32_t id, uin
 						SPA_POD_ARRAY_FOREACH((spa_pod_array *)(&position->value), entry) {
 							node->m_position_codes.push_back(*entry);
 							for(uint32_t i = 0;; i++) {
-								if((position_infos[i].m_position == *entry) || (position_infos[i].m_position == SPA_AUDIO_CHANNEL_UNKNOWN)) {
+								if((position_infos[i].m_position == *entry)
+								   || (*entry >= SPA_AUDIO_CHANNEL_START_Aux && position_infos[i].m_position == SPA_AUDIO_CHANNEL_AUX0)
+								   || (position_infos[i].m_position == SPA_AUDIO_CHANNEL_UNKNOWN)) {
 									node->m_positions.push_back(position_infos[i].m_coords);
 									break;
 								}
@@ -483,7 +488,6 @@ int sound_pipewire::init(osd_interface &osd, osd_options const &options)
 	m_generation = 1;
 
 	m_wait_sync = false;
-	m_wait_stream = false;
 
 	pw_init(nullptr, nullptr);
  	m_loop = pw_thread_loop_new(nullptr, nullptr);
@@ -630,15 +634,14 @@ void sound_pipewire::stream_event_param_changed(stream_info *stream, uint32_t id
 	if(id == SPA_PARAM_Props) {
 		const spa_pod_prop *vols = spa_pod_find_prop(param, nullptr, SPA_PROP_channelVolumes);
 		if(vols) {
-			bool initial = stream->m_volumes.empty();
 			stream->m_volumes.clear();
 			float *entry;
 			SPA_POD_ARRAY_FOREACH((spa_pod_array *)(&vols->value), entry) {
 				stream->m_volumes.push_back(osd::linear_to_db(*entry));
 			}
 			if(!stream->m_volumes.empty()) {
-				if(initial) {
-					m_wait_stream = false;
+				if(stream->m_wait_stream) {
+					stream->m_wait_stream = false;
 					pw_thread_loop_signal(m_loop, false);
 				} else
 					m_generation++;
@@ -697,8 +700,7 @@ uint32_t sound_pipewire::stream_sink_open(uint32_t node, std::string name, uint3
 					  pw_stream_flags(PW_STREAM_FLAG_AUTOCONNECT | PW_STREAM_FLAG_MAP_BUFFERS | PW_STREAM_FLAG_RT_PROCESS),
 					  &params, 1);
 
-	m_wait_stream = true;
-	while(m_wait_stream)
+	while(stream.m_wait_stream)
 		pw_thread_loop_wait(m_loop);
 
 	stream.m_node_id = pw_stream_get_node_id(stream.m_stream);
@@ -751,8 +753,7 @@ uint32_t sound_pipewire::stream_source_open(uint32_t node, std::string name, uin
 					  pw_stream_flags(PW_STREAM_FLAG_AUTOCONNECT | PW_STREAM_FLAG_MAP_BUFFERS | PW_STREAM_FLAG_RT_PROCESS),
 					  &params, 1);
 
-	m_wait_stream = true;
-	while(m_wait_stream)
+	while(stream.m_wait_stream)
 		pw_thread_loop_wait(m_loop);
 
 	stream.m_node_id = pw_stream_get_node_id(stream.m_stream);
