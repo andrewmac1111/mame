@@ -27,11 +27,31 @@ public:
 	m_acceptor(m_ioctx),
 	m_sock_rx(m_ioctx),
 	m_sock_tx(m_ioctx),
-	m_tx_timeout(m_ioctx)
+	m_timeout_tx(m_ioctx),
+	m_state_rx(0U),
+	m_state_tx(0U)
 	{
 	}
 
-	void start(std::string localhost, std::string localport, std::string remotehost, std::string remoteport)
+	void start()
+	{
+
+		m_thread = std::thread(
+				[this] ()
+				{
+					LOG("MB89374: network thread started\n");
+					try {
+						m_ioctx.run();
+					} catch (const std::exception& e) {
+						LOG("MB89374: Exception in network thread: %s\n", e.what());
+					} catch (...) { // Catch any other unknown exceptions
+						LOG("MB89374: Unknown exception in network thread\n");
+					}
+					LOG("MB89374: network thread completed\n");
+				});
+	}
+
+	void reset(std::string localhost, std::string localport, std::string remotehost, std::string remoteport)
 	{
 		std::error_code err;
 		asio::ip::tcp::resolver resolver(m_ioctx);
@@ -55,184 +75,331 @@ public:
 		{
 			LOG("MB89374: remotehost resolve error: %s\n", err.message());
 		}
+
+		m_ioctx.post(
+				[this] ()
+				{
+					std::error_code err;
+					if (m_acceptor.is_open())
+						m_acceptor.close(err);
+					if (m_sock_rx.is_open())
+						m_sock_rx.close(err);
+					if (m_sock_tx.is_open())
+						m_sock_tx.close(err);
+					m_timeout_tx.cancel();
+					m_state_rx.store(0);
+					m_state_tx.store(0);
+					start_accept();
+					start_connect();
+				});
 	}
 
 	void stop()
 	{
-		std::error_code err;
-		if (m_acceptor.is_open())
-			m_acceptor.close(err);
-		if (m_sock_rx.is_open())
-			m_sock_rx.close(err);
-		if (m_sock_tx.is_open())
-			m_sock_tx.close(err);
-		m_tx_timeout.cancel();
-		m_tx_state = 0;
-		m_rx_state = 0;
+		m_ioctx.post(
+				[this] ()
+				{
+					std::error_code err;
+					if (m_acceptor.is_open())
+						m_acceptor.close(err);
+					if (m_sock_rx.is_open())
+						m_sock_rx.close(err);
+					if (m_sock_tx.is_open())
+						m_sock_tx.close(err);
+					m_timeout_tx.cancel();
+					m_state_rx.store(0);
+					m_state_tx.store(0);
+					m_ioctx.stop();
+				});
+		m_work_guard.reset();
+		if (m_thread.joinable()) {
+			m_thread.join();
+		}
 	}
 
 	void check_sockets()
 	{
-		// if async operation in progress, poll context
-		if ((m_rx_state == 1) || (m_tx_state == 1))
-			m_ioctx.poll();
-
-		// start acceptor if needed
-		if (m_localaddr && m_rx_state == 0)
-		{
-			std::error_code err;
-			m_acceptor.open(m_localaddr->protocol(), err);
-			m_acceptor.set_option(asio::ip::tcp::acceptor::reuse_address(true));
-			if (!err)
-			{
-				m_acceptor.bind(*m_localaddr, err);
-				if (!err)
-				{
-					m_acceptor.listen(1, err);
-					if (!err)
-					{
-						osd_printf_verbose("MB89374: RX listen on %s\n", *m_localaddr);
-						m_acceptor.async_accept(
-								[this] (std::error_code const &err, asio::ip::tcp::socket sock)
-								{
-									if (err)
-									{
-										LOG("MB89374: RX error accepting - %d %s\n", err.value(), err.message());
-										std::error_code e;
-										m_acceptor.close(e);
-										m_rx_state = 0;
-									}
-									else
-									{
-										LOG("MB89374: RX connection from %s\n", sock.remote_endpoint());
-										std::error_code e;
-										m_acceptor.close(e);
-										m_sock_rx = std::move(sock);
-										m_sock_rx.non_blocking(true);
-										m_sock_rx.set_option(asio::socket_base::receive_buffer_size(524288));
-										m_sock_rx.set_option(asio::socket_base::keep_alive(true));
-										m_rx_state = 2;
-									}
-								});
-						m_rx_state = 1;
-					}
-				}
-			}
-			if (err)
-			{
-				LOG("MB89374: RX failed - %d %s\n", err.value(), err.message());
-			}
-		}
-
-		// connect socket if needed
-		if (m_remoteaddr && m_tx_state == 0)
-		{
-			std::error_code err;
-			if (m_sock_tx.is_open())
-				m_sock_tx.close(err);
-			m_sock_tx.open(m_remoteaddr->protocol(), err);
-			if (!err)
-			{
-				m_sock_tx.non_blocking(true);
-				m_sock_tx.set_option(asio::ip::tcp::no_delay(true));
-				m_sock_tx.set_option(asio::socket_base::send_buffer_size(65536));
-				m_sock_tx.set_option(asio::socket_base::keep_alive(true));
-				osd_printf_verbose("MB89374: TX connecting to %s\n", *m_remoteaddr);
-				m_tx_timeout.expires_after(std::chrono::seconds(10));
-				m_tx_timeout.async_wait(
-						[this] (std::error_code const &err)
-						{
-							if (!err && m_tx_state == 1)
-							{
-								osd_printf_verbose("MB89374: TX connect timed out\n");
-								std::error_code e;
-								m_sock_tx.close(e);
-								m_tx_state = 0;
-							}
-						});
-				m_sock_tx.async_connect(
-						*m_remoteaddr,
-						[this] (std::error_code const &err)
-						{
-							m_tx_timeout.cancel();
-							if (err)
-							{
-								osd_printf_verbose("MB89374: TX connect error - %d %s\n", err.value(), err.message());
-								std::error_code e;
-								m_sock_tx.close(e);
-								m_tx_state = 0;
-							}
-							else
-							{
-								LOG("MB89374: TX connection established\n");
-								m_tx_state = 2;
-							}
-						});
-				m_tx_state = 1;
-			}
-		}
 	}
 
 	bool connected()
 	{
-		return m_rx_state == 2 && m_tx_state == 2;
+		return m_state_rx.load() == 2 && m_state_tx.load() == 2;
 	}
 
 	unsigned receive(uint8_t *buffer)
 	{
-		if (m_rx_state != 2)
-			return 0;
+		if (m_state_rx.load() < 2)
+			return UINT_MAX;
 
 		// check for packet length (2 bytes)
-		std::error_code err;
-		std::size_t data_size = 2;
-		std::size_t bytes_read = m_sock_rx.receive(asio::buffer(&buffer[0], data_size), asio::socket_base::message_peek, err);
-		if (err == asio::error::would_block)
+		unsigned data_size = 2;
+		if (data_size > m_fifo_rx.used())
 			return 0;
 
-		if (!err)
-		{
-			// check if whole packet is ready to be read
-			data_size += (buffer[0x01] << 8 | buffer[0x00]);
-			bytes_read = m_sock_rx.receive(asio::buffer(&buffer[0], data_size), asio::socket_base::message_peek, err);
+		m_fifo_rx.read(&buffer[0], data_size, true);
+		data_size += (buffer[0x01] << 8 | buffer[0x00]);
 
-			// do actual read
-			if (!err && bytes_read == data_size)
-				bytes_read = m_sock_rx.receive(asio::buffer(&buffer[0], data_size), 0, err);
-		}
+		// check if whole packet is ready to be read
+		if (data_size > m_fifo_rx.used())
+			return 0;
 
-		if (err)
-		{
-			osd_printf_verbose("MB89374: RX error receiving - %d %s\n", err.value(), err.message());
-			m_sock_rx.close(err);
-			m_rx_state = 0;
-			return UINT_MAX;
-		}
-
-		if (bytes_read == data_size)
-			return bytes_read;
-		return 0;
-
+		return m_fifo_rx.read(&buffer[0], data_size, false);
 	}
 
 	unsigned send(uint8_t *buffer, unsigned data_size)
 	{
-		if (m_tx_state != 2)
-			return 0;
+		if (m_state_tx.load() < 2)
+			return UINT_MAX;
 
-		std::error_code err;
-		std::size_t bytes_sent = m_sock_tx.send(asio::buffer(&buffer[0], data_size), 0, err);
-		if (err || bytes_sent != data_size)
+		if (data_size > m_fifo_tx.free())
 		{
-			osd_printf_verbose("MB89374: TX error sending - %d %s\n", err.value(), err.message());
-			m_sock_tx.close(err);
-			m_tx_state = 0;
+			LOG("MB89374: TX buffer overflow\n");
 			return UINT_MAX;
 		}
+
+		bool const sending = m_fifo_tx.used();
+		m_fifo_tx.write(&buffer[0], data_size);
+		if (!sending)
+			m_ioctx.post(
+					[this] ()
+					{
+						start_send_tx();
+					});
 		return data_size;
 	}
 
 private:
+	class fifo
+	{
+	public:
+		unsigned write(uint8_t *buffer, unsigned data_size)
+		{
+			std::lock_guard<std::mutex> lock(m_mutex);
+			unsigned used = 0;
+			if (m_wp >= m_rp)
+			{
+				used = std::min<unsigned>(m_buffer.size() - m_wp, data_size);
+				std::copy_n(&buffer[0], used, &m_buffer[m_wp]);
+				m_wp = (m_wp + used) % m_buffer.size();
+			}
+			unsigned const block = std::min<unsigned>(data_size - used, m_rp - m_wp);
+			if (block)
+			{
+				std::copy_n(&buffer[used], block, &m_buffer[m_wp]);
+				used += block;
+				m_wp += block;
+			}
+			m_used += used;
+			return used;
+		}
+
+		unsigned read(uint8_t *buffer, unsigned data_size, bool peek)
+		{
+			std::lock_guard<std::mutex> lock(m_mutex);
+			unsigned rp = m_rp;
+			unsigned used = 0;
+			if (rp >= m_wp)
+			{
+				used = std::min<std::size_t>(m_buffer.size() - rp, data_size);
+				std::copy_n(&m_buffer[rp], used, &buffer[0]);
+				rp = (rp + used) % m_buffer.size();
+			}
+			unsigned const block = std::min<unsigned>(data_size - used, m_wp - rp);
+			if (block)
+			{
+				std::copy_n(&m_buffer[rp], block, &buffer[used]);
+				used += block;
+				rp += block;
+			}
+			if (!peek)
+			{
+				m_rp = (m_rp + used) % m_buffer.size();
+				m_used -= used;
+			}
+			return used;
+		}
+
+		void consume(unsigned data_size)
+		{
+			std::lock_guard<std::mutex> lock(m_mutex);
+			m_rp = (m_rp + data_size) % m_buffer.size();
+			m_used -= data_size;
+		}
+
+		unsigned used()
+		{
+			std::lock_guard<std::mutex> lock(m_mutex);
+			return m_used;
+		}
+
+		unsigned free()
+		{
+			std::lock_guard<std::mutex> lock(m_mutex);
+			return m_buffer.size() - m_used;
+		}
+
+		void clear()
+		{
+			std::lock_guard<std::mutex> lock(m_mutex);
+			m_wp = m_rp = m_used = 0;
+		}
+
+
+	private:
+		unsigned m_wp = 0;
+		unsigned m_rp = 0;
+		unsigned m_used = 0;
+		std::array<uint8_t, 0x80000> m_buffer;
+		std::mutex m_mutex;
+	};
+
+	void start_accept()
+	{
+		std::error_code err;
+		m_acceptor.open(m_localaddr->protocol(), err);
+		m_acceptor.set_option(asio::ip::tcp::acceptor::reuse_address(true));
+		if (!err)
+		{
+			m_acceptor.bind(*m_localaddr, err);
+			if (!err)
+			{
+				m_acceptor.listen(1, err);
+				if (!err)
+				{
+					osd_printf_verbose("MB89374: RX listen on %s\n", *m_localaddr);
+					m_acceptor.async_accept(
+							[this] (std::error_code const &err, asio::ip::tcp::socket sock)
+							{
+								if (err)
+								{
+									LOG("MB89374: RX error accepting - %d %s\n", err.value(), err.message());
+									std::error_code e;
+									m_acceptor.close(e);
+									m_state_rx.store(0);
+									start_accept();
+								}
+								else
+								{
+									LOG("MB89374: RX connection from %s\n", sock.remote_endpoint());
+									std::error_code e;
+									m_acceptor.close(e);
+									m_sock_rx = std::move(sock);
+									m_sock_rx.set_option(asio::socket_base::keep_alive(true));
+									m_state_rx.store(2);
+									start_receive_rx();
+								}
+							});
+					m_state_rx.store(1);
+				}
+			}
+		}
+		if (err)
+		{
+			LOG("MB89374: RX failed - %d %s\n", err.value(), err.message());
+		}
+	}
+
+	void start_connect()
+	{
+		std::error_code err;
+		if (m_sock_tx.is_open())
+			m_sock_tx.close(err);
+		m_sock_tx.open(m_remoteaddr->protocol(), err);
+		if (!err)
+		{
+			m_sock_tx.set_option(asio::ip::tcp::no_delay(true));
+			m_sock_tx.set_option(asio::socket_base::keep_alive(true));
+			osd_printf_verbose("MB89374: TX connecting to %s\n", *m_remoteaddr);
+			m_timeout_tx.expires_after(std::chrono::seconds(10));
+			m_timeout_tx.async_wait(
+					[this] (std::error_code const &err)
+					{
+						if (!err && m_state_tx.load() == 1)
+						{
+							osd_printf_verbose("MB89374: TX connect timed out\n");
+							std::error_code e;
+							m_sock_tx.close(e);
+							m_state_tx.store(0);
+							start_connect();
+						}
+					});
+			m_sock_tx.async_connect(
+					*m_remoteaddr,
+					[this] (std::error_code const &err)
+					{
+						m_timeout_tx.cancel();
+						if (err)
+						{
+							osd_printf_verbose("MB89374: TX connect error - %d %s\n", err.value(), err.message());
+							std::error_code e;
+							m_sock_tx.close(e);
+							m_state_tx.store(0);
+							start_connect();
+						}
+						else
+						{
+							LOG("MB89374: TX connection established\n");
+							m_state_tx.store(2);
+						}
+					});
+			m_state_tx.store(1);
+		}
+	}
+
+	void start_send_tx()
+	{
+		unsigned used = m_fifo_tx.read(&m_buffer_tx[0], std::min<unsigned>(m_fifo_tx.used(), m_buffer_tx.size()), true);
+		m_sock_tx.async_write_some(
+				asio::buffer(&m_buffer_tx[0], used),
+				[this] (std::error_code const &err, std::size_t length)
+				{
+					m_fifo_tx.consume(length);
+					if (err)
+					{
+						LOG("MB89374: TX connection error: %s\n", err.message().c_str());
+						m_sock_tx.close();
+						m_state_tx.store(0);
+						m_fifo_tx.clear();
+						start_connect();
+					}
+					else if (m_fifo_tx.used())
+					{
+						start_send_tx();
+					}
+				});
+	}
+
+	void start_receive_rx()
+	{
+		m_sock_rx.async_read_some(
+				asio::buffer(m_buffer_rx),
+				[this] (std::error_code const &err, std::size_t length)
+				{
+					if (err || !length)
+					{
+						if (err)
+							LOG("MB89374: RX connection error: %s\n", err.message());
+						else
+							LOG("MB89374: RX connection lost\n");
+						m_sock_rx.close();
+						m_state_rx.store(0);
+						m_fifo_rx.clear();
+						start_accept();
+					}
+					else
+					{
+						if (UINT_MAX == m_fifo_rx.write(&m_buffer_rx[0], length))
+						{
+							LOG("MB89374: RX buffer overflow\n");
+							m_sock_rx.close();
+							m_state_rx.store(0);
+							m_fifo_rx.clear();
+						}
+						start_receive_rx();
+					}
+				});
+	}
+
 	template <typename Format, typename... Params>
 	void logerror(Format &&fmt, Params &&... args) const
 	{
@@ -242,16 +409,23 @@ private:
 				util::string_format(std::forward<Format>(fmt), std::forward<Params>(args)...));
 	}
 
+	std::thread m_thread;
 	asio::io_context m_ioctx;
+	asio::executor_work_guard<asio::io_context::executor_type> m_work_guard{m_ioctx.get_executor()};
 	std::optional<asio::ip::tcp::endpoint> m_localaddr;
 	std::optional<asio::ip::tcp::endpoint> m_remoteaddr;
 	asio::ip::tcp::acceptor m_acceptor;
 	asio::ip::tcp::socket m_sock_rx;
 	asio::ip::tcp::socket m_sock_tx;
-	asio::steady_timer m_tx_timeout;
-	uint8_t m_rx_state;
-	uint8_t m_tx_state;
+	asio::steady_timer m_timeout_tx;
+	std::atomic_uint m_state_rx;
+	std::atomic_uint m_state_tx;
+	fifo m_fifo_rx;
+	fifo m_fifo_tx;
+	std::array<uint8_t, 0x400> m_buffer_rx;
+	std::array<uint8_t, 0x400> m_buffer_tx;
 };
+
 
 //**************************************************************************
 //  LIVE DEVICE
@@ -361,6 +535,7 @@ void mb89374_device::device_start()
 
 	auto ctx = std::make_unique<context>();
 	m_context = std::move(ctx);
+	m_context->start();
 
 	// state saving
 	save_item(NAME(m_irq));
@@ -460,10 +635,8 @@ void mb89374_device::device_reset()
 
 	m_tx_offset = 0x0000;
 
-	m_context->stop();
-
 	auto const &opts = mconfig().options();
-	m_context->start(opts.comm_localhost(), opts.comm_localport(), opts.comm_remotehost(), opts.comm_remoteport());
+	m_context->reset(opts.comm_localhost(), opts.comm_localport(), opts.comm_remotehost(), opts.comm_remoteport());
 }
 
 void mb89374_device::device_stop()
