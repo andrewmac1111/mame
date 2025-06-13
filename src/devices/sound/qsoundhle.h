@@ -13,18 +13,12 @@
 #include "cpu/dsp16/dsp16.h"
 #include "dirom.h"
 
-#define MAME_SOUND_QSOUNDHLE_H_QSOUND_H
-#include "qsound.h"
-#undef MAME_SOUND_QSOUNDHLE_H_QSOUND_H
-
 
 class qsound_hle_device : public device_t, public device_sound_interface, public device_rom_interface<24>
 {
 public:
 	// default 60MHz clock (divided by 2 for DSP core clock, and then by 1248 for sample rate)
 	qsound_hle_device(machine_config const &mconfig, char const *tag, device_t *owner, uint32_t clock = 60'000'000);
-
-	static auto parent_rom_device_type() { return &QSOUND; }
 
 	void qsound_w(offs_t offset, uint8_t data);
 	uint8_t qsound_r();
@@ -158,7 +152,7 @@ private:
 
 	uint16_t *m_register_map[256];
 
-	inline uint16_t read_dsp_rom(uint16_t addr) { return m_dsp_rom[addr & 0xfff]; }
+	inline uint16_t read_dsp_rom(uint16_t addr) { return m_dsp_rom[addr&0xfff]; }
 
 	void write_data(uint8_t addr, uint16_t data);
 	uint16_t read_data(uint8_t addr);

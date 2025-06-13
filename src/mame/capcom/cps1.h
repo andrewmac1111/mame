@@ -18,6 +18,7 @@
 #include "machine/timer.h"
 #include "sound/msm5205.h"
 #include "sound/okim6295.h"
+#include "sound/qsound.h"
 
 #include "emupal.h"
 #include "screen.h"
