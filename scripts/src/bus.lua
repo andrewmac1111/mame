@@ -44,6 +44,8 @@ if (BUSES["A800"]~=null) then
 		MAME_DIR .. "src/devices/bus/a800/atari810.h",
 		MAME_DIR .. "src/devices/bus/a800/atari1050.cpp",
 		MAME_DIR .. "src/devices/bus/a800/atari1050.h",
+		MAME_DIR .. "src/devices/bus/a800/atarifdc.cpp",
+		MAME_DIR .. "src/devices/bus/a800/atarifdc.h",
 		MAME_DIR .. "src/devices/bus/a800/cassette.cpp",
 		MAME_DIR .. "src/devices/bus/a800/cassette.h",
 		MAME_DIR .. "src/devices/bus/a800/a800_slot.cpp",
@@ -3262,6 +3264,10 @@ if (BUSES["NUBUS"]~=null) then
 		MAME_DIR .. "src/devices/bus/nubus/quadralink.h",
 		MAME_DIR .. "src/devices/bus/nubus/laserview.cpp",
 		MAME_DIR .. "src/devices/bus/nubus/laserview.h",
+		MAME_DIR .. "src/devices/bus/nubus/enetnbtp.cpp",
+		MAME_DIR .. "src/devices/bus/nubus/enetnbtp.h",
+		MAME_DIR .. "src/devices/bus/nubus/enetlc.cpp",
+		MAME_DIR .. "src/devices/bus/nubus/enetlc.h",
 		MAME_DIR .. "src/devices/bus/nubus/supermac.cpp",
 		MAME_DIR .. "src/devices/bus/nubus/supermac.h",
 		MAME_DIR .. "src/devices/bus/nubus/thunder4gx.cpp",
@@ -3274,6 +3280,16 @@ if (BUSES["NUBUS"]~=null) then
 		MAME_DIR .. "src/devices/bus/nubus/pds30_sigmalview.h",
 		MAME_DIR .. "src/devices/bus/nubus/pds30_30hr.cpp",
 		MAME_DIR .. "src/devices/bus/nubus/pds30_30hr.h",
+		MAME_DIR .. "src/devices/bus/nubus/pwrbkduo/cards.cpp",
+		MAME_DIR .. "src/devices/bus/nubus/pwrbkduo/cards.h",
+		MAME_DIR .. "src/devices/bus/nubus/pwrbkduo/duodock.cpp",
+		MAME_DIR .. "src/devices/bus/nubus/pwrbkduo/duodock.h",
+		MAME_DIR .. "src/devices/bus/nubus/pwrbkduo/ethernetudock.cpp",
+		MAME_DIR .. "src/devices/bus/nubus/pwrbkduo/ethernetudock.h",
+		MAME_DIR .. "src/devices/bus/nubus/pwrbkduo/floppydock.cpp",
+		MAME_DIR .. "src/devices/bus/nubus/pwrbkduo/floppydock.h",
+		MAME_DIR .. "src/devices/bus/nubus/pwrbkduo/pwrbkduo.cpp",
+		MAME_DIR .. "src/devices/bus/nubus/pwrbkduo/pwrbkduo.h",
 	}
 end
 
@@ -5448,20 +5464,6 @@ if (BUSES["MULTIBUS"]~=null) then
 		MAME_DIR .. "src/devices/bus/multibus/robotron_k7070.h",
 		MAME_DIR .. "src/devices/bus/multibus/robotron_k7071.cpp",
 		MAME_DIR .. "src/devices/bus/multibus/robotron_k7071.h",
-	}
-end
-
----------------------------------------------------
---
---@src/devices/bus/rtpc/kbd_con.h,BUSES["RTPC_KBD"] = true
----------------------------------------------------
-
-if (BUSES["RTPC_KBD"]~=null) then
-	files {
-		MAME_DIR .. "src/devices/bus/rtpc/kbd_con.cpp",
-		MAME_DIR .. "src/devices/bus/rtpc/kbd_con.h",
-		MAME_DIR .. "src/devices/bus/rtpc/kbd.cpp",
-		MAME_DIR .. "src/devices/bus/rtpc/kbd.h",
 	}
 end
 
