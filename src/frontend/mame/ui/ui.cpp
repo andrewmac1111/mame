@@ -2135,7 +2135,7 @@ int32_t mame_ui_manager::slider_adjuster(ioport_field &field, std::string *str, 
 
 //-------------------------------------------------
 //  slider_speed - speed factor slider callback
-//-------------------------------------------------Add commentMore actions
+//-------------------------------------------------
 
 int32_t mame_ui_manager::slider_speed(std::string *str, int32_t newval)
 {
@@ -2150,7 +2150,7 @@ int32_t mame_ui_manager::slider_speed(std::string *str, int32_t newval)
 		else
 			*str = string_format(_("%1$3d%%"), curval / 10);
 	}
-Add commentMore actions
+
 	return curval;
 }
 
