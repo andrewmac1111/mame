@@ -3,10 +3,10 @@
 
 /*
    Sony NEWS M68K systems.
- 
+
    Sources:
      - http://wiki.netbsd.org/ports/news68k/
-  
+
    TODO:
      - mouse/keyboard
      - graphics/slots
@@ -66,6 +66,8 @@ __|              |         |  |ALS05A| |N82077   |   __             6 x 74F00J->
  On the other side of the PCB there are a few components too:
   - 3 x HM62256LFP-12T
   - 1 x DS1000S-50
+
+ NWS-1250 came bundled with a Sony mouse based on a Fujitsu MB88201H MCU (undumped mask ROM 512 x 8 bits).
 
  */
 

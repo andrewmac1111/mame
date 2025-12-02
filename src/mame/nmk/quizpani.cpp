@@ -107,6 +107,7 @@ private:
 	uint32_t screen_update(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect);
 
 	void program_map(address_map &map) ATTR_COLD;
+	void nmk112_oki0_map(address_map &map) ATTR_COLD;
 };
 
 
@@ -219,6 +220,11 @@ void quizpani_state::program_map(address_map &map)
 	map(0x11c000, 0x11ffff).ram().w(FUNC(quizpani_state::txt_videoram_w)).share(m_txt_videoram);
 	map(0x180000, 0x18ffff).ram();
 	map(0x200000, 0x33ffff).rom();
+}
+
+void quizpani_state::nmk112_oki0_map(address_map &map)
+{
+	map(0x00000, 0x3ffff).m("nmk112", FUNC(nmk112_device::oki0_map));
 }
 
 
@@ -379,27 +385,32 @@ static INPUT_PORTS_START( quizpanir )
 	PORT_DIPNAME( 0x0001, 0x0001, DEF_STR( Flip_Screen ) ) // ok
 	PORT_DIPSETTING(      0x0001, DEF_STR( Off ) )
 	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
-	PORT_DIPNAME( 0x0002, 0x0002, DEF_STR( Unknown ) )
-	PORT_DIPSETTING(      0x0000, DEF_STR( Off ) )
-	PORT_DIPSETTING(      0x0002, DEF_STR( On ) )
-	PORT_DIPNAME( 0x0004, 0x0004, DEF_STR( Unknown ) )
-	PORT_DIPSETTING(      0x0004, DEF_STR( Off ) )
-	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
-	PORT_DIPNAME( 0x0008, 0x0008, DEF_STR( Unknown ) )
-	PORT_DIPSETTING(      0x0008, DEF_STR( Off ) )
-	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
-	PORT_DIPNAME( 0x0010, 0x0010, DEF_STR( Unknown ) )
-	PORT_DIPSETTING(      0x0010, DEF_STR( Off ) )
-	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
-	PORT_DIPNAME( 0x0020, 0x0020, DEF_STR( Unknown ) )
-	PORT_DIPSETTING(      0x0020, DEF_STR( Off ) )
-	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
-	PORT_DIPNAME( 0x0040, 0x0040, DEF_STR( Unknown ) )
-	PORT_DIPSETTING(      0x0040, DEF_STR( Off ) )
-	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
-	PORT_DIPNAME( 0x0080, 0x0080, DEF_STR( Unknown ) )
-	PORT_DIPSETTING(      0x0080, DEF_STR( Off ) )
-	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
+	PORT_DIPNAME( 0x001e, 0x001e, DEF_STR( Coin_A ) )
+	PORT_DIPSETTING(      0x000e, DEF_STR( 1C_1C ) )
+	PORT_DIPSETTING(      0x000c, DEF_STR( 1C_2C ) )
+	PORT_DIPSETTING(      0x000a, DEF_STR( 1C_3C ) )
+	PORT_DIPSETTING(      0x0008, DEF_STR( 1C_4C ) )
+	PORT_DIPSETTING(      0x0006, DEF_STR( 1C_5C ) )
+	PORT_DIPSETTING(      0x0004, DEF_STR( 1C_6C ) )
+	PORT_DIPSETTING(      0x0002, DEF_STR( 1C_7C ) )
+	PORT_DIPSETTING(      0x0000, DEF_STR( 1C_8C ) )
+	PORT_DIPSETTING(      0x0012, DEF_STR( 1C_10C ) )
+	PORT_DIPSETTING(      0x0010, "1 Coin/11 Credits" )
+	PORT_DIPSETTING(      0x001e, DEF_STR( 1C_20C ) )
+	PORT_DIPSETTING(      0x001c, "1 Coin/22 Credits" )
+	PORT_DIPSETTING(      0x001a, "1 Coin/30 Credits" )
+	PORT_DIPSETTING(      0x0018, "1 Coin/33 Credits" )
+	PORT_DIPSETTING(      0x0016, "1 Coin/40 Credits" )
+	PORT_DIPSETTING(      0x0014, "1 Coin/44 Credits" )
+	PORT_DIPNAME( 0x00e0, 0x00e0, DEF_STR( Coin_B ) )
+	PORT_DIPSETTING(      0x0020, DEF_STR( 5C_1C ) )
+	PORT_DIPSETTING(      0x0040, DEF_STR( 4C_1C ) )
+	PORT_DIPSETTING(      0x0060, DEF_STR( 3C_1C ) )
+	PORT_DIPSETTING(      0x0080, DEF_STR( 2C_1C ) )
+	PORT_DIPSETTING(      0x00c0, DEF_STR( 1C_1C ) )
+	PORT_DIPSETTING(      0x0000, DEF_STR( 2C_3C ) )
+	PORT_DIPSETTING(      0x00e0, DEF_STR( 1C_2C ) )
+	PORT_DIPSETTING(      0x00a0, DEF_STR( 1C_3C ) )
 INPUT_PORTS_END
 
 
@@ -429,10 +440,12 @@ void quizpani_state::quizpani(machine_config &config)
 
 	SPEAKER(config, "mono").front_center();
 
-	OKIM6295(config, "oki", 16'000'000 / 4, okim6295_device::PIN7_LOW).add_route(ALL_OUTPUTS, "mono", 1.0);
-
 	nmk112_device &nmk112(NMK112(config, "nmk112", 0));
 	nmk112.set_rom0_tag("oki");
+
+	okim6295_device &oki(OKIM6295(config, "oki", 16'000'000 / 4, okim6295_device::PIN7_LOW));
+	oki.add_route(ALL_OUTPUTS, "mono", 1.0);
+	oki.set_addrmap(0, &quizpani_state::nmk112_oki0_map);
 }
 
 ROM_START( quizpani )
@@ -451,10 +464,10 @@ ROM_START( quizpani )
 	ROM_LOAD( "93090-21.10", 0x000000, 0x100000, CRC(63754242) SHA1(3698b89d8515b45b9bc0fff87ca94ab5c2b3d53a) )
 	ROM_LOAD( "93090-22.9",  0x100000, 0x100000, CRC(93382cd3) SHA1(6527e92f696c21aae65d008bb237231eaba7a105) )
 
-	ROM_REGION( 0x340000, "oki", 0 )
-	ROM_LOAD( "93090-31.58", 0x040000, 0x100000, CRC(1cce0e13) SHA1(43816762e7907a8ff4b5a7b8da9f799b5baa64d5) )
-	ROM_LOAD( "93090-32.57", 0x140000, 0x100000, CRC(5d38f62e) SHA1(22fe95de6e1de1be0cec73b8163ab4283f2b8186) )
-	ROM_LOAD( "93090-4.56",  0x240000, 0x100000, CRC(ee370ed6) SHA1(9b1edfada5805014aa23d28d0c70227728b0e04f) )
+	ROM_REGION( 0x300000, "oki", 0 )
+	ROM_LOAD( "93090-31.58", 0x000000, 0x100000, CRC(1cce0e13) SHA1(43816762e7907a8ff4b5a7b8da9f799b5baa64d5) )
+	ROM_LOAD( "93090-32.57", 0x100000, 0x100000, CRC(5d38f62e) SHA1(22fe95de6e1de1be0cec73b8163ab4283f2b8186) )
+	ROM_LOAD( "93090-4.56",  0x200000, 0x100000, CRC(ee370ed6) SHA1(9b1edfada5805014aa23d28d0c70227728b0e04f) )
 
 	ROM_REGION( 0x300, "proms", 0 )
 	ROM_LOAD( "qz6.88",  0x000, 0x100, CRC(19dbbad2) SHA1(ebf7950d1869ca3bc1e72228505fbc17d095746a) ) // unknown
@@ -476,10 +489,10 @@ ROM_START( quizpanir )
 	ROM_LOAD( "10",          0x000000, 0x080000, CRC(e40e2c53) SHA1(f2d997c9b80cd96d07398d98152399968a3aa62b) ) // unreadable label
 	ROM_LOAD( "93090-22.9",  0x100000, 0x100000, CRC(93382cd3) SHA1(6527e92f696c21aae65d008bb237231eaba7a105) )
 
-	ROM_REGION( 0x340000, "oki", 0 )
-	ROM_LOAD( "93090-31.58", 0x040000, 0x100000, CRC(1cce0e13) SHA1(43816762e7907a8ff4b5a7b8da9f799b5baa64d5) )
-	ROM_LOAD( "93090-32.57", 0x140000, 0x100000, CRC(5d38f62e) SHA1(22fe95de6e1de1be0cec73b8163ab4283f2b8186) )
-	ROM_LOAD( "93090-4.56",  0x240000, 0x100000, CRC(ee370ed6) SHA1(9b1edfada5805014aa23d28d0c70227728b0e04f) )
+	ROM_REGION( 0x300000, "oki", 0 )
+	ROM_LOAD( "93090-31.58", 0x000000, 0x100000, CRC(1cce0e13) SHA1(43816762e7907a8ff4b5a7b8da9f799b5baa64d5) )
+	ROM_LOAD( "93090-32.57", 0x100000, 0x100000, CRC(5d38f62e) SHA1(22fe95de6e1de1be0cec73b8163ab4283f2b8186) )
+	ROM_LOAD( "93090-4.56",  0x200000, 0x100000, CRC(ee370ed6) SHA1(9b1edfada5805014aa23d28d0c70227728b0e04f) )
 
 	ROM_REGION( 0x300, "proms", 0 )
 	ROM_LOAD( "qz6.88",  0x000, 0x100, CRC(19dbbad2) SHA1(ebf7950d1869ca3bc1e72228505fbc17d095746a) ) // unknown
@@ -491,4 +504,4 @@ ROM_END
 
 
 GAME( 1993, quizpani,  0, quizpani, quizpani,  quizpani_state, empty_init, ROT0, "NMK", "Quiz Panicuru Fantasy",        MACHINE_SUPPORTS_SAVE )
-GAME( 1994, quizpanir, 0, quizpani, quizpanir, quizpani_state, empty_init, ROT0, "NMK", "Medal Quiz Panicuru Roulette", MACHINE_NOT_WORKING | MACHINE_SUPPORTS_SAVE )
+GAME( 1994, quizpanir, quizpani, quizpani, quizpanir, quizpani_state, empty_init, ROT0, "NMK", "Medal Quiz Panicuru Roulette", MACHINE_NOT_WORKING | MACHINE_SUPPORTS_SAVE )

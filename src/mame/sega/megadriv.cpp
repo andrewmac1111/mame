@@ -45,12 +45,6 @@ Known Non-Issues (confirmed on Real Genesis)
 
 void md_base_state::megadriv_z80_bank_w(uint16_t data)
 {
-	// TODO: menghu crashes here
-	// Tries to setup a bank of 0xff0000 from z80 side (PC=1131) after you talk with the cashier twice.
-	// Without a guard over it game will trash 68k memory causing a crash, works on real HW with everdrive
-	// so not coming from a cart copy protection.
-	// Update: it breaks cfodder BGM on character select at least, therefore we current don't guard against it
-	// Apparently reading 68k RAM from z80 is not recommended by Sega, so *writing* isn't possible lacking bus grant?
 	m_genz80.z80_bank_addr = ((m_genz80.z80_bank_addr >> 1) | (data << 23)) & 0xff8000;
 }
 
@@ -310,11 +304,13 @@ void md_base_state::m68k_ioport_s_ctrl_write(uint16_t data)
 
 void md_base_state::megadriv_68k_base_map(address_map &map)
 {
-	map(0xa00000, 0xa01fff).rw(FUNC(md_base_state::megadriv_68k_read_z80_ram), FUNC(md_base_state::megadriv_68k_write_z80_ram));
-	map(0xa02000, 0xa03fff).w(FUNC(md_base_state::megadriv_68k_write_z80_ram));
-	map(0xa04000, 0xa04003).rw(FUNC(md_base_state::megadriv_68k_YM2612_read), FUNC(md_base_state::megadriv_68k_YM2612_write));
+	// before_delay required by pacman2 intro
+	// TODO: unverified if 68k doesn't have bus grant
+	map(0xa00000, 0xa01fff).before_delay(NAME([](offs_t) { return 1; })).rw(FUNC(md_base_state::megadriv_68k_read_z80_ram), FUNC(md_base_state::megadriv_68k_write_z80_ram));
+	map(0xa02000, 0xa03fff).before_delay(NAME([](offs_t) { return 1; })).w(FUNC(md_base_state::megadriv_68k_write_z80_ram));
+	map(0xa04000, 0xa04003).before_delay(NAME([](offs_t) { return 1; })).rw(FUNC(md_base_state::megadriv_68k_YM2612_read), FUNC(md_base_state::megadriv_68k_YM2612_write));
 
-	map(0xa06000, 0xa06001).w(FUNC(md_base_state::megadriv_68k_z80_bank_write));
+	map(0xa06000, 0xa06001).before_delay(NAME([](offs_t) { return 1; })).w(FUNC(md_base_state::megadriv_68k_z80_bank_write));
 
 	map(0xa10000, 0xa10001).r(FUNC(md_base_state::m68k_version_read));
 	map(0xa10002, 0xa10007).rw(FUNC(md_base_state::m68k_ioport_data_read), FUNC(md_base_state::m68k_ioport_data_write));
@@ -721,21 +717,6 @@ void md_base_state::megadriv_stop_scanline_timer()
 }
 
 
-
-// this comes from the VDP on lines 240 (on) 241 (off) and is connected to the z80 irq 0
-void md_base_state::vdp_sndirqline_callback_genesis_z80(int state)
-{
-	if (state == ASSERT_LINE)
-	{
-		if ((m_genz80.z80_has_bus == 1) && (m_genz80.z80_is_reset == 0))
-			m_z80snd->set_input_line(0, HOLD_LINE);
-	}
-	else if (state == CLEAR_LINE)
-	{
-		m_z80snd->set_input_line(0, CLEAR_LINE);
-	}
-}
-
 // this comes from the vdp, and is connected to 68k irq level 6 (IPL2, main vbl interrupt)
 void md_core_state::vdp_vint_cb(int state)
 {
@@ -822,7 +803,7 @@ void md_core_state::md_core_pal(machine_config &config)
 
 void md_base_state::megadriv_ioports(machine_config &config)
 {
-	// TODO: this latches video counters as well as setting interrupt level 2
+	// TODO: this latches video counters as well as setting interrupt level 2 (thru VDP)
 	auto &hl(INPUT_MERGER_ANY_HIGH(config, "hl"));
 	hl.output_handler().set_inputline(m_maincpu, 2);
 
@@ -876,7 +857,8 @@ void md_base_state::md_ntsc(machine_config &config)
 	// I/O port controllers
 	megadriv_ioports(config);
 
-	m_vdp->snd_irq().set(FUNC(md_base_state::vdp_sndirqline_callback_genesis_z80));
+	// this comes from the VDP on lines 240 (on) 241 (off) and is connected to the z80 irq 0
+	m_vdp->snd_irq().set_inputline(m_z80snd, 0);
 	m_vdp->add_route(ALL_OUTPUTS, "speaker", 0.50, 0);
 	m_vdp->add_route(ALL_OUTPUTS, "speaker", 0.50, 1);
 
@@ -914,7 +896,7 @@ void md_base_state::md_pal(machine_config &config)
 	// I/O port controllers
 	megadriv_ioports(config);
 
-	m_vdp->snd_irq().set(FUNC(md_base_state::vdp_sndirqline_callback_genesis_z80));
+	m_vdp->snd_irq().set_inputline(m_z80snd, 0);
 	m_vdp->add_route(ALL_OUTPUTS, "speaker", 0.50, 0);
 	m_vdp->add_route(ALL_OUTPUTS, "speaker", 0.50, 1);
 

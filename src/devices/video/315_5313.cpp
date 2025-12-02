@@ -597,10 +597,10 @@ void sega315_5313_device::vdp_set_register(int regnum, u8 value)
 		if (m_irq4_pending && MEGADRIVE_REG0_IRQ4_ENABLE)
 		{
 			m_irq4_on_timer->adjust(attotime::from_ticks(16, clock() / 4));
-//			if (MEGADRIVE_REG0_IRQ4_ENABLE)
-//				m_lv4irqline_callback(true);
-//			else
-//				m_lv4irqline_callback(false);
+//          if (MEGADRIVE_REG0_IRQ4_ENABLE)
+//              m_lv4irqline_callback(true);
+//          else
+//              m_lv4irqline_callback(false);
 		}
 		else
 			m_lv4irqline_callback(false);
@@ -613,10 +613,10 @@ void sega315_5313_device::vdp_set_register(int regnum, u8 value)
 		{
 			m_irq6_on_timer->adjust(attotime::from_ticks(16, clock() / 4));
 
-//			if (MEGADRIVE_REG01_IRQ6_ENABLE)
-//				m_lv6irqline_callback(true);
-//			else
-//				m_lv6irqline_callback(false);
+//          if (MEGADRIVE_REG01_IRQ6_ENABLE)
+//              m_lv6irqline_callback(true);
+//          else
+//              m_lv6irqline_callback(false);
 		}
 		else
 			m_lv6irqline_callback(false);
@@ -2265,7 +2265,7 @@ void sega315_5313_device::vdp_handle_scanline_callback(int scanline)
 		if (get_scanline_counter() == m_irq6_scanline)
 		{
 		//  osd_printf_debug("x %d", get_scanline_counter());
-			m_irq6_on_timer->adjust(attotime::from_ticks(16, clock() / 4));
+			m_irq6_on_timer->adjust(attotime::from_ticks(32, clock() / 4));
 			m_irq6_pending = 1;
 			m_vblank_flag = 1;
 		}
@@ -2273,6 +2273,7 @@ void sega315_5313_device::vdp_handle_scanline_callback(int scanline)
 	//  if (get_scanline_counter() == 0) m_irq4counter = MEGADRIVE_REG0A_HINT_VALUE;
 		// m_irq4counter = MEGADRIVE_REG0A_HINT_VALUE;
 
+		// TODO: V30 mode (PAL) runs the V counter up to 240
 		if (get_scanline_counter() <= 224)
 		{
 			m_irq4counter--;
@@ -2286,7 +2287,7 @@ void sega315_5313_device::vdp_handle_scanline_callback(int scanline)
 
 				if (MEGADRIVE_REG0_IRQ4_ENABLE)
 				{
-					m_irq4_on_timer->adjust(attotime::from_ticks(16, clock() / 4));
+					m_irq4_on_timer->adjust(attotime::from_ticks(32, clock() / 4));
 					//osd_printf_debug("irq4 on scanline %d reload %d\n", get_scanline_counter(), MEGADRIVE_REG0A_HINT_VALUE);
 				}
 				else
@@ -2329,7 +2330,7 @@ void sega315_5313_device::vdp_handle_eof()
 
 	m_vblank_flag = 0;
 	// Not here, breaks warlock
-//	m_irq6_pending = 0;
+//  m_irq6_pending = 0;
 
 	/* Set it to -1 here, so it becomes 0 when the first timer kicks in */
 	if (!m_use_alt_timing) m_scanline_counter = -1;
