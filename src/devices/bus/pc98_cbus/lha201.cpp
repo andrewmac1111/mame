@@ -10,17 +10,13 @@ https://98epjunk.shakunage.net/sw/ext_card/ext_card_doc/lha201.txt
 Maximum -chs 13329,15,63 according to link above (for LHA-20B BIOS, TBD for LHA-201)
 
 TODO:
-- stuck at "Negate ACK" just like base devices (cfr. issue #14532);
 - Can't IPL boot as standalone (requires a bootable IDE BIOS and moving of ROM window here),
   uses SC_MODE_SENSE_6 pages 0xc3 and 0xc4, then SC_READ_CAPACITY, finally keeps SC_TEST_UNIT_READY
   -> SC_REQUEST_SENSE with length = 0x16 trimmed internally with 18 (?).
   What it reads comes from initial device_reset sense request.
 - Need data throttle between here, wd33c9x and/or NSCSI harddisk, otherwise executing anything will
-  fail;
+  fail (should be fixed with pc98_hd option?);
 - PIO mode (involves port $cc6 and a ready flag in port $37 bit 0)
-- Tends to miss BIOS ROM loading at first boot, need to refactor C-Bus to actually have slots
-  as children (and make remapping phase less arbitrary, can't read required input port at
-  device_start);
 - Remaining remap options;
 
 **************************************************************************************************/
@@ -187,6 +183,7 @@ void lha201_device::remap(int space_id, offs_t start, offs_t end)
 {
 	if (space_id == AS_PROGRAM)
 	{
+		// TODO: move base in device_reset
 		const u32 m_memory_base = 0x000d0000 + ((m_dsw2->read() & 7) * 0x2000);
 		m_bus->space(AS_PROGRAM).install_rom(
 			m_memory_base,
