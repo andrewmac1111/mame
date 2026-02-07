@@ -2477,6 +2477,9 @@ ohmygod
 @source:atlus/patapata.cpp
 patapata
 
+@source:atlus/pitchtry.cpp
+pitchtry
+
 @source:atlus/rallypnt.cpp
 rallypnt2
 
@@ -20545,6 +20548,11 @@ tpad770z
 @source:ibm/thinkpad8xx.cpp
 tpad850
 
+@source:ice/calchase.cpp
+calchase
+eggsplc
+hostinv
+
 @source:ice/chexx.cpp
 chexx83
 faceoffh
@@ -20586,6 +20594,9 @@ ripribita
 
 @source:ice/schexx4gen.cpp
 schexx
+
+@source:ice/skimaxx.cpp
+skimaxx
 
 @source:ice/vp101.cpp
 jnero
@@ -21051,6 +21062,7 @@ cjddz215cn
 cjddz217cn
 cjddzlf
 cjddzp
+cjddzp206cn
 cjddzps
 cjddzs
 cjddzsa
@@ -29110,6 +29122,7 @@ sprtdart
 4enrayaa
 bowlgum
 chicgum
+spadarts
 strker
 tourpgum
 unkpacg
@@ -33228,9 +33241,6 @@ slvrballbu409b
 popshot
 skeetsht
 
-@source:misc/skimaxx.cpp
-skimaxx
-
 @source:misc/skyarmy.cpp
 skyarmy
 
@@ -34659,6 +34669,9 @@ timecrs2v1b
 timecrs2v2b
 timecrs2v4a
 timecrs2v5a
+
+@source:namco/namcos6.cpp
+ddflower
 
 @source:namco/namcos86.cpp
 genpeitd
@@ -37297,7 +37310,6 @@ pccm317
 pccm321
 pccm326
 pccm396f
-pccm912
 pccm915i
 pccm919
 pcd2
@@ -37377,7 +37389,6 @@ um486v
 um82c481af
 um82c491f
 um82c493f
-um8498f
 um8810paio
 um8886
 uni386w
@@ -37406,11 +37417,6 @@ at586x3
 m55hipl
 ficvt503
 ecssi5pi
-
-@source:pc/calchase.cpp
-calchase
-eggsplc
-hostinv
 
 @source:pc/champ2.cpp
 champ2
@@ -37479,6 +37485,9 @@ iskr1031
 @source:pc/mc1502.cpp
 mc1502
 pk88
+
+@source:pc/mdartstr.cpp
+mdartstr
 
 @source:pc/megapc.cpp
 megapc
@@ -37626,6 +37635,9 @@ quake
 
 @source:pc/queen.cpp
 queen
+
+@source:pc/scatsx.cpp
+mb1320
 
 @source:pc/seawolfnm.cpp
 seawolfnm
@@ -39960,9 +39972,11 @@ drtomy
 @source:playmark/playmark.cpp
 bigtwin
 bigtwinb
+bigtwinc
 excelsr
 excelsra
 hotmind
+hotmindc
 hrdtimes
 hrdtimesa
 luckboomh
@@ -40762,6 +40776,7 @@ dcdev
 dceu
 dcjp
 dcfish
+dcproto
 dctream
 
 @source:sega/deniam.cpp
@@ -43903,6 +43918,7 @@ fc100
 
 @source:skeleton/fdek_h8s.cpp
 battkids
+sirekids
 
 @source:skeleton/fk1.cpp
 fk1
@@ -44046,6 +44062,7 @@ kron180
 
 @source:skeleton/lanmao.cpp
 lanmao
+panda2
 
 @source:skeleton/leadsinger2.cpp
 leadsng2
@@ -44333,6 +44350,9 @@ shine
 @source:skeleton/shoken_md06.cpp
 petitlot
 polstar2
+polstrfi
+polstrmf
+silvrush
 
 @source:skeleton/si5500.cpp
 si5500
@@ -48096,6 +48116,11 @@ metamaq2
 @source:ultratec/minicom.cpp
 mcom4_02
 minicom
+
+@source:umc/pc486vl.cpp
+pccm912
+sy019s
+tku5s
 
 @source:umc/supracan.cpp
 supracan
