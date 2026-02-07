@@ -32,7 +32,7 @@ public:
 	auto irq_cb() { return m_irq_cb.bind(); }
 
 	// I/O operations
-+	void data_map(address_map &map) ATTR_COLD;
+	void data_map(address_map &map) ATTR_COLD;
 	void regs_map(address_map &map) ATTR_COLD;
 
 	uint16_t ram_r(offs_t offset);
