@@ -877,6 +877,7 @@ void k056230_viper_device::regs_map(address_map &map)
 		NAME([this] (offs_t offset) {
 			if (!machine().side_effects_disabled())
 				LOGMASKED(LOG_REG_READS, "%s: status_r: %02x\n", machine().describe_context(), m_status);
+			return m_status;
 		})
 	);
 	// TODO: unknown regs
